@@ -130,7 +130,7 @@ const Navbar = () => {
   const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Categories', path: '/categories' },
-    { name: 'Products', path: '/product-details' },
+    { name: 'Products', path: '/product' },
     { name: 'Checkout', path: '/checkout' },
     { name: 'Offers', path: '/offers', icon: Gift }
   ];

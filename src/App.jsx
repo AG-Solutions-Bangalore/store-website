@@ -9,6 +9,7 @@ import Cart from './pages/cart/Cart';
 import Checkout from './pages/checkout/Checkout';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Product from './pages/product/Product';
+import ProductAll from './pages/product/ProductAll';
 const queryClient = new QueryClient()
 function App() {
   return (
@@ -18,10 +19,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/categories" element={<Categories />} />
-        <Route path="/product-details" element={<ProductDetails />} />
+        <Route path="/product-details/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/product/:id" element={<Product />} />
+        <Route path="/product" element={<ProductAll />} />
       </Routes>
     </MainLayout>
     </QueryClientProvider>
