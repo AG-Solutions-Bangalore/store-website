@@ -9,7 +9,7 @@ import BASE_URL from '../../config/BaseUrl';
 
 
 const fetchCategories = async () => {
-  const response = await axios.get(`${BASE_URL}/api/fetch-category`);
+  const response = await axios.get(`${BASE_URL}/api/web-fetch-category`);
   return response.data;
 };
 
@@ -48,6 +48,7 @@ const CategoriesSection = () => {
      return (
        <CategoryCard
          key={category.id}
+         id={category.id}
          image={`${data.image_url.find(img => img.image_for === "Category").image_url}${category.category_image}`}
          title={category.category_name}
          itemCount={category.product_count}

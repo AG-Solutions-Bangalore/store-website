@@ -79,7 +79,7 @@ const CategoryCard = ({
           <div onClick={()=> navigate(`/product/${id}`)} className={`mt-2 text-center transition-all duration-300 overflow-hidden ${
             isHovered ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
           }`}>
-            <button className="text-[10px] sm:text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full transition-colors duration-200">
+            <button className="text-[10px] sm:text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full transition-colors duration-200 cursor-pointer">
               View Details
             </button>
           </div>

@@ -4,25 +4,18 @@ import ProductViewCard from '../../components/Cards/ProductViewCard';
 import ProductCard from '../../components/Cards/ProductCard';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
 import BASE_URL from '../../config/BaseUrl';
 
-const fetchCategoryProducts = async (categoryId) => {
-  const response = await axios.get(`${BASE_URL}/api/web-fetch-categoryproduct-by-id/${categoryId}`);
+const fetchAllProducts = async () => {
+  const response = await axios.get(`${BASE_URL}/api/web-fetch-product`);
   return response.data;
 };
 
-const Product = () => {
-  const { id } = useParams();
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['categoryProducts', id],
-    queryFn: () => fetchCategoryProducts(id)
-  });
-
+const ProductAll = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedWeights, setSelectedWeights] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 10000]);
-
+  const [selectedTags, setSelectedTags] = useState([]);
   const [sortBy, setSortBy] = useState('default');
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -32,11 +25,16 @@ const Product = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['allProducts'],
+    queryFn: fetchAllProducts
+  });
 
+  // Transform API data to match ProductCard props
   const transformProductData = (apiData) => {
-    if (!apiData || !apiData.products) return [];
+    if (!apiData || !apiData.data) return [];
     
-    return apiData.products.map(product => {
+    return apiData.data.map(product => {
       const defaultImage = product.subs.find(sub => sub.is_default === "true") || product.subs[0];
       const hoverImage = product.subs.find(sub => sub.is_default === "false") || defaultImage;
       
@@ -56,15 +54,29 @@ const Product = () => {
         rating: 0,
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
-        isNew: true,
+        isNew: false,
         productData: product
       };
     });
   };
 
   const products = transformProductData(data);
-  
 
+  // Get unique categories from products
+  const categories = useMemo(() => {
+    if (!data || !data.data) return [];
+    const categorySet = new Set();
+    data.data.forEach(product => {
+      categorySet.add(product.category_names);
+    });
+    return Array.from(categorySet).map(category => ({
+      name: category,
+      icon: '🍎', // Default icon
+      selected: false
+    }));
+  }, [data]);
+
+  // Get unique weights from products
   const weights = useMemo(() => {
     const weightSet = new Set();
     products.forEach(product => {
@@ -73,10 +85,13 @@ const Product = () => {
     return Array.from(weightSet);
   }, [products]);
 
+  const handleTagRemove = (tag) => {
+    setSelectedTags(prev => prev.filter(t => t !== tag));
+  };
 
- 
-
-  
+  const clearAllTags = () => {
+    setSelectedTags([]);
+  };
 
   const handleProductView = (product) => {
     setSelectedProduct(product);
@@ -142,6 +157,70 @@ const Product = () => {
         <div className="flex gap-8">
           {/* Left Sidebar - Filters */}
           <div className="w-80 space-y-6">
+            {/* Category Filter */}
+            <div className="bg-white rounded-md border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Category</h3>
+                <ChevronDown className="w-5 h-5 text-gray-500" />
+              </div>
+              <hr className="mb-4 text-gray-200"/>
+              <div className="space-y-3">
+                {categories.map((category, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id={`category-${index}`}
+                      checked={selectedCategories.includes(category.name)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategories(prev => [...prev, category.name]);
+                        } else {
+                          setSelectedCategories(prev => prev.filter(c => c !== category.name));
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor={`category-${index}`} className="flex items-center space-x-2 text-gray-700 cursor-pointer">
+                      <span className="text-lg">{category.icon}</span>
+                      <span className="text-sm">{category.name}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Weight Filter */}
+            <div className="bg-white rounded-md border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Weight</h3>
+                <ChevronDown className="w-5 h-5 text-gray-500" />
+              </div>
+              <hr className="mb-4 text-gray-200"/>
+              <div className="space-y-3">
+                {weights.map((weight, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id={`weight-${index}`}
+                      checked={selectedWeights.includes(weight)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedWeights(prev => [...prev, weight]);
+                        } else {
+                          setSelectedWeights(prev => prev.filter(w => w !== weight));
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor={`weight-${index}`} className="text-sm text-gray-700 cursor-pointer">
+                      {weight}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Filter */}
             <div className="bg-white rounded-md border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Price</h3>
@@ -180,36 +259,6 @@ const Product = () => {
                 </div>
               </div>
             </div>
-           
-            <div className="bg-white rounded-md border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Weight or Sizes</h3>
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              </div>
-              <hr className="mb-4 text-gray-200"/>
-              <div className="space-y-3">
-                {weights.map((weight, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id={`weight-${index}`}
-                      checked={selectedWeights.includes(weight)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedWeights(prev => [...prev, weight]);
-                        } else {
-                          setSelectedWeights(prev => prev.filter(w => w !== weight));
-                        }
-                      }}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor={`weight-${index}`} className="text-sm text-gray-700 cursor-pointer">
-                      {weight}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right - Products */}
@@ -217,17 +266,58 @@ const Product = () => {
             <div className="bg-white rounded-md border border-gray-200 p-4 mb-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                  {currentProducts.length > 0 && (
-  <span
-    key={currentProducts[0].id}
-    className="inline-flex items-center   text-xl  font-medium text-black"
-  >
-    {currentProducts[0].category} Products
-  </span>
-)}
-                    
-                  </div>
+                <div className="flex items-center space-x-2">
+  {/* Show selected categories */}
+  {selectedCategories.slice(0, 3).map((category, index) => (
+    <span
+      key={`category-${index}`}
+      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+    >
+      {category}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedCategories(prev => prev.filter(c => c !== category));
+        }}
+        className="ml-1 hover:text-blue-600"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  ))}
+  
+  {/* Show selected weights */}
+  {selectedWeights.slice(0, 3).map((weight, index) => (
+    <span
+      key={`weight-${index}`}
+      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+    >
+      {weight}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedWeights(prev => prev.filter(w => w !== weight));
+        }}
+        className="ml-1 hover:text-blue-600"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  ))}
+
+  {/* Clear All button */}
+  {(selectedCategories.length > 0 || selectedWeights.length > 0) && (
+    <button
+      onClick={() => {
+        setSelectedCategories([]);
+        setSelectedWeights([]);
+      }}
+      className="px-3 py-1 text-xs text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+    >
+      Clear All
+    </button>
+  )}
+</div>
                 </div>
                 
                 <div className="flex items-center space-x-4">
@@ -350,4 +440,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default ProductAll;

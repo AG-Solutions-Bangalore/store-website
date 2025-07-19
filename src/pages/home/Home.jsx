@@ -17,7 +17,7 @@ const Home = () => {
     <NewArrival/>
     <Featured/>
     <Info/>
-    <Trending/>
+    {/* <Trending/> */}
     </>
   )
 }

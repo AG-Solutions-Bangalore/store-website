@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Star, StarHalf, ShoppingCart, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ 
+  id, 
   image, 
   hoverImage,
   title, 
@@ -15,7 +17,7 @@ const ProductCard = ({
   onViewProduct
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-
+  const navigate = useNavigate()
 
   const renderStars = (rating) => {
     const stars = [];
@@ -43,13 +45,16 @@ const ProductCard = ({
     
     return stars;
   };
-  const handleViewProduct = () => {
+  const handleViewProduct = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
     if (onViewProduct) {
       onViewProduct();
     }
   };
   return (
     <div 
+    onClick={() => navigate(`/product-details/${id}`)}
       className="bg-white rounded-md border border-gray-200  hover:shadow-md transition-all duration-300 overflow-hidden group relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -100,25 +105,30 @@ const ProductCard = ({
         
        
         <div className="flex items-center gap-1">
-          {renderStars(rating)}
+          {/* {renderStars(rating)} */}
+          {weight && (
+            <span className="text-xs text-gray-500 font-medium">
+              {weight}
+            </span>
+          )}
         </div>
         
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold text-gray-900">
-              ${price}
+            &#8377;{price}
             </span>
             {originalPrice && (
               <span className="text-sm text-gray-500 line-through">
-                ${originalPrice}
+                &#8377;{originalPrice}
               </span>
             )}
           </div>
           {weight && (
-            <span className="text-xs text-gray-500 font-medium">
-              {weight}
-            </span>
+            <button className="p-2 rounded-lg  border border-gray-200 bg-blue-200 cursor-pointer hover:bg-blue-600 transition-colors duration-200">
+            <ShoppingCart className="w-4 h-4 text-gray-900" />
+          </button>
           )}
         </div>
       </div>

@@ -6,7 +6,7 @@ import CategoryCard from '../../components/Cards/CategoryCard';
 import BASE_URL from '../../config/BaseUrl';
 
 const fetchCategories = async () => {
-  const response = await axios.get(`${BASE_URL}/api/fetch-category`);
+  const response = await axios.get(`${BASE_URL}/api/web-fetch-category`);
   return response.data;
 };
 
