@@ -1,137 +1,171 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
-import ProductCard from "../../components/Cards/ProductCard";
-import ProductViewCard from "../../components/Cards/ProductViewCard";
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+import { useSelector, useDispatch } from 'react-redux';
+import { clearCart } from '../../redux/slices/CartSlice';
+import { useNavigate } from 'react-router-dom';
+import BASE_URL from '../../config/BaseUrl';
+import useNumericInput from "../../hooks/useNumericInput";
 
 const Checkout = () => {
-  const [couponCode, setCouponCode] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const cartItems = useSelector((state) => state.cart.items);
+  const keyDown = useNumericInput()
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    firm_name: "",
+    gstin: "",
+    name: "",
+    mobile: "",
+    whatsapp: "",
+    email: "",
     address: "",
-    country: "",
-    region: "",
-    city: "",
-    postCode: "",
+    delivery_instructions: "",
+    delivery_charges: "0",
+    discount_amount: "0"
   });
 
-  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
-  const [regionDropdownOpen, setRegionDropdownOpen] = useState(false);
-  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-      const [selectedProduct, setSelectedProduct] = useState(null);
-      const handleProductView = (product) => {
-        setSelectedProduct(product);
-        setIsModalOpen(true);
-      };
+  const [errors, setErrors] = useState({
+    firm_name: "",
+    name: "",
+    mobile: "",
+    email: "",
+    address: "",
+    gstin: ""
+  });
+
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryCharges = parseFloat(formData.delivery_charges) || 0;
+  const discountAmount = parseFloat(formData.discount_amount) || 0;
+  const total = subtotal + deliveryCharges - discountAmount;
+
+  const validateField = (name, value) => {
+    let error = "";
     
-      const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedProduct(null);
-      };
-  const countries = [
-    "United States",
-    "Canada",
-    "United Kingdom",
-    "Australia",
-    "India",
-  ];
-  const regions = ["California", "New York", "Texas", "Florida", "Illinois"];
-  const cities = [
-    "New York City",
-    "Los Angeles",
-    "Chicago",
-    "Houston",
-    "Phoenix",
-  ];
-  const products = [
-    {
-      image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/6_1.jpg",
-      hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/6_2.jpg",
-      title: "Mixed Nuts Berries Pack",
-      category: "Dried Fruits",
-      price: "56.00",
-      originalPrice: "45.00",
-      rating: 4,
-      onSale: true
-    },
-    {
-      image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/3_1.jpg",
-      hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/3_2.jpg",
-      title: "Multi Grain Combo Cookies",
-      category: "Cookies",
-      price: "30.00",
-      originalPrice: "25.00",
-      rating: 3,
-      weight: "10kg",
-      onSale: true
-    },
-    {
-      image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/9_1.jpg",
-      hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/9_2.jpg",
-      title: "Fresh Mango Juice Pack",
-      category: "Foods",
-      price: "65.00",
-      originalPrice: "40.00",
-      rating: 2,
-      onSale: true
-    },
-    {
-      image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/2_1.jpg",
-      hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/2_2.jpg",
-      title: "Dates Value Fresh Pouch",
-      category: "Dried Fruits",
-      price: "85.00",
-      originalPrice: "70.00",
-      rating: 3,
-      onSale: true
-    },
-    {
-      image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/1_1.jpg",
-      hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/1_2.jpg",
-      title: "Stick Fiber Masala Magic",
-      category: "Foods",
-      price: "50.00",
-      originalPrice: "45.00",
-      rating: 2,
-      weight: "2pack",
-      isNew: true
+    switch (name) {
+      case "firm_name":
+        if (!value.trim()) error = "Firm name is required";
+        break;
+      case "name":
+        if (!value.trim()) error = "Full name is required";
+        else if (value.length < 3) error = "Name must be at least 3 characters";
+        break;
+      case "mobile":
+        if (!value.trim()) error = "Mobile number is required";
+        else if (!/^[0-9]{10}$/.test(value)) error = "Invalid mobile number (10 digits required)";
+        break;
+      case "whatsapp":
+        if (value && !/^[0-9]{10}$/.test(value)) error = "Invalid WhatsApp number (10 digits required)";
+        break;
+      case "email":
+        if (!value.trim()) error = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = "Invalid email address";
+        break;
+      case "address":
+        if (!value.trim()) error = "Address is required";
+        else if (value.length < 10) error = "Address must be at least 10 characters";
+        break;
+      case "gstin":
+        if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+          error = "Invalid GSTIN format";
+        }
+        break;
+      default:
+        break;
     }
-  ];
+    
+    return error;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    
+    // Validate the field
+    const error = validateField(name, value);
+    
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+    
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const cartItems = [
-    {
-      id: 1,
-      name: "Women's Wallet Hand Purse",
-      price: 70.0,
-      originalPrice: 50.0,
-      quantity: 1,
-      image:
-        "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/6_1.jpg",
-      rating: 5,
-    },
-    {
-      id: 2,
-      name: "Fresh Lichi",
-      price: 11.0,
-      originalPrice: 10.0,
-      quantity: 1,
-      image:
-        "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/2_1.jpg",
-      rating: 0,
-    },
-  ];
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {...errors};
+    
 
-  const subtotal = 203.0;
-  const deliveryCharges = 40.6;
-  const total = subtotal + deliveryCharges;
+    Object.keys(formData).forEach(key => {
+      if (key !== "gstin" && key !== "whatsapp" && key !== "delivery_instructions" && 
+          key !== "delivery_charges" && key !== "discount_amount") {
+        const error = validateField(key, formData[key]);
+        newErrors[key] = error;
+        if (error) isValid = false;
+      }
+    });
+    
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const { mutate: placeOrder, isLoading } = useMutation({
+    mutationFn: async (orderData) => {
+      const response = await axios.post(
+        `${BASE_URL}/api/web-create-guest-user-order`,
+        orderData
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.code === 201) {
+        const orderData = {
+          order_id: `TEMP-${Date.now()}`, 
+          total_amount: total.toFixed(2),
+          address: formData.address,
+          mobile: formData.mobile,
+          support_phone: '1800-123-4567', 
+          subs: cartItems.map(item => ({
+            product_id: item.id,
+            product_name: item.name,
+            product_image: item.image,
+            product_price: item.price.toString(),
+            product_qnty: item.quantity.toString(),
+            size: item.size || 'Standard'
+          }))
+        };
+        dispatch(clearCart());
+        navigate('/order-success', { state: { orderData } });
+      }
+    },
+    onError: (error) => {
+      console.error('Order placement failed:', error);
+      navigate('/order-failed');
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    const orderData = {
+      ...formData,
+      subs: cartItems.map(item => ({
+        product_id: item.id,
+        product_price: item.price.toString(),
+        product_qnty: item.quantity.toString()
+      }))
+    };
+    
+    placeOrder(orderData);
+  };
 
   return (
     <div className="w-full py-8 min-h-screen">
@@ -148,42 +182,28 @@ const Checkout = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Sub-Total</span>
                   <span className="text-gray-900 font-medium">
-                    ${subtotal.toFixed(2)}
+                    ₹{subtotal.toFixed(2)}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery Charges</span>
                   <span className="text-gray-900 font-medium">
-                    ${deliveryCharges.toFixed(2)}
+                    ₹{deliveryCharges.toFixed(2)}
                   </span>
                 </div>
 
-                <div className="pt-4">
-                  <div className="flex justify-between items-center mb-3 text-sm">
-                    <span className="text-gray-600">Coupon Discount</span>
-                    <button className="text-green-600 hover:text-green-800 text-sm font-medium">
-                      Apply Coupon
-                    </button>
-                  </div>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="Enter Your Coupon Code"
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none"
-                    />
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium">
-                      Apply
-                    </button>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Discount Amount</span>
+                  <span className="text-gray-900 font-medium">
+                    -₹{discountAmount.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between items-center text-lg font-medium">
                     <span className="text-gray-900">Total Amount</span>
-                    <span className="text-gray-900">${total.toFixed(2)}</span>
+                    <span className="text-gray-900">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -205,30 +225,17 @@ const Checkout = () => {
                       <h3 className="text-sm font-medium text-gray-800">
                         {item.name}
                       </h3>
-                      <div className="flex items-center gap-1 my-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span
-                            key={star}
-                            className={`text-sm ${
-                              star <= item.rating
-                                ? "text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          >
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mt-1">
                         <span className="font-medium text-gray-800">
-                          ${item.price.toFixed(2)}
+                          ₹{item.price}
                         </span>
-                        {item.originalPrice && (
-                          <span className="text-gray-500 line-through text-xs">
-                            ${item.originalPrice.toFixed(2)}
-                          </span>
-                        )}
+                        <span className="text-gray-500 text-xs">
+                          Qty: {item.quantity}
+                        </span>
                       </div>
+                      {item.size && (
+                        <p className="text-xs text-gray-500 mt-1">Size: {item.size}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -238,278 +245,200 @@ const Checkout = () => {
 
           {/* Right Column - Billing Details */}
           <div className="w-full lg:w-[65%]">
-            <div className="bg-white rounded-md border border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Billing Details
-                </h2>
-              </div>
-
-              <div className="p-4 space-y-6">
-                {/* Checkout Options */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">
-                    Checkout Options
-                  </h3>
-                  <div className="flex gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="addressOption"
-                        value="existing"
-                        className="text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700">
-                        I want to use an existing address
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="addressOption"
-                        value="new"
-                        defaultChecked
-                        className="text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700">
-                        I want to use new address
-                      </span>
-                    </label>
-                  </div>
+            <form onSubmit={handleSubmit}>
+              <div className="bg-white rounded-md border border-gray-200">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900">
+                    Billing Details
+                  </h2>
                 </div>
 
-                {/* Form Fields */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name*
-                      </label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name*
-                      </label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Country
-                      </label>
-                      <div className="relative">
-                        <button
-                          onClick={() =>
-                            setCountryDropdownOpen(!countryDropdownOpen)
-                          }
-                          className="w-full px-3 py-2 border border-gray-200 rounded-md bg-white text-left flex items-center justify-between hover:border-gray-400 focus:outline-none text-sm"
-                        >
-                          <span
-                            className={`${
-                              formData.country
-                                ? "text-gray-700"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {formData.country || "Select Country"}
-                          </span>
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
-                        </button>
-                        {countryDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-                            {countries.map((country) => (
-                              <button
-                                key={country}
-                                onClick={() => {
-                                  setFormData({ ...formData, country });
-                                  setCountryDropdownOpen(false);
-                                }}
-                                className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-gray-700"
-                              >
-                                {country}
-                              </button>
-                            ))}
-                          </div>
+                <div className="p-4 space-y-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Firm Name*
+                        </label>
+                        <input
+                          type="text"
+                          name="firm_name"
+                          value={formData.firm_name}
+                          onChange={handleInputChange}
+                          className={`w-full px-3 py-2 border ${errors.firm_name ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        />
+                        {errors.firm_name && (
+                          <p className="mt-1 text-xs text-red-500">{errors.firm_name}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          GSTIN
+                        </label>
+                        <input
+                          type="text"
+                          name="gstin"
+                          value={formData.gstin}
+                          onChange={handleInputChange}
+                          className={`w-full px-3 py-2 border ${errors.gstin ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        />
+                        {errors.gstin && (
+                          <p className="mt-1 text-xs text-red-500">{errors.gstin}</p>
                         )}
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Region State
-                      </label>
-                      <div className="relative">
-                        <button
-                          onClick={() =>
-                            setRegionDropdownOpen(!regionDropdownOpen)
-                          }
-                          className="w-full px-3 py-2 border border-gray-200 rounded-md bg-white text-left flex items-center justify-between hover:border-gray-400 focus:outline-none text-sm"
-                        >
-                          <span
-                            className={`${
-                              formData.region
-                                ? "text-gray-700"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {formData.region || "Select Region/State"}
-                          </span>
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
-                        </button>
-                        {regionDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-                            {regions.map((region) => (
-                              <button
-                                key={region}
-                                onClick={() => {
-                                  setFormData({ ...formData, region });
-                                  setRegionDropdownOpen(false);
-                                }}
-                                className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-gray-700"
-                              >
-                                {region}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        City*
-                      </label>
-                      <div className="relative">
-                        <button
-                          onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-md bg-white text-left flex items-center justify-between hover:border-gray-400 focus:outline-none text-sm"
-                        >
-                          <span
-                            className={`${
-                              formData.city ? "text-gray-700" : "text-gray-400"
-                            }`}
-                          >
-                            {formData.city || "Select City"}
-                          </span>
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
-                        </button>
-                        {cityDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-                            {cities.map((city) => (
-                              <button
-                                key={city}
-                                onClick={() => {
-                                  setFormData({ ...formData, city });
-                                  setCityDropdownOpen(false);
-                                }}
-                                className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-gray-700"
-                              >
-                                {city}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Post Code
+                        Full Name*
                       </label>
                       <input
                         type="text"
-                        name="postCode"
-                        value={formData.postCode}
+                        name="name"
+                        value={formData.name}
                         onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                      />
+                      {errors.name && (
+                        <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mobile Number*
+                        </label>
+                        <input
+                          type="tel"
+                          name="mobile"
+                          value={formData.mobile}
+                          onChange={handleInputChange}
+                          onKeyDown={keyDown}
+                          maxLength="10"
+                          className={`w-full px-3 py-2 border ${errors.mobile ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        />
+                        {errors.mobile && (
+                          <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          WhatsApp Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="whatsapp"
+                          value={formData.whatsapp}
+                          onChange={handleInputChange}
+                          onKeyDown={keyDown}
+                          maxLength="10"
+                          className={`w-full px-3 py-2 border ${errors.whatsapp ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        />
+                        {errors.whatsapp && (
+                          <p className="mt-1 text-xs text-red-500">{errors.whatsapp}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email Address*
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                      />
+                      {errors.email && (
+                        <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Address*
+                      </label>
+                      <input
+                        type="text"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                      />
+                      {errors.address && (
+                        <p className="mt-1 text-xs text-red-500">{errors.address}</p>
+                      )}
+                    </div>
+
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Delivery Charges (₹)
+                        </label>
+                        <input
+                          type="number"
+                          name="delivery_charges"
+                          value={formData.delivery_charges}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Discount Amount (₹)
+                        </label>
+                        <input
+                          type="number"
+                          name="discount_amount"
+                          value={formData.discount_amount}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Delivery Instructions
+                      </label>
+                      <textarea
+                        name="delivery_instructions"
+                        value={formData.delivery_instructions}
+                        onChange={handleInputChange}
+                        rows="2"
                         className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                       />
-                    </div>
-                  </div>
+                    </div> */}
 
-                  <div className="pt-4 flex justify-between items-center">
-                    <button className="text-gray-600 hover:text-blue-800 text-sm font-medium flex items-center">
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      Back to Cart
-                    </button>
-                    <button className="bg-blue-900 text-white px-6 py-2 rounded-md hover:bg-blue-800 text-sm font-medium">
-                      Place Order
-                    </button>
+                    <div className="pt-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+                      <button 
+                        type="button"
+                        onClick={() => navigate('/cart')}
+                        className="text-gray-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Back to Cart
+                      </button>
+                      <button 
+                        type="submit"
+                        disabled={isLoading || cartItems.length === 0}
+                        className="bg-blue-900 text-white px-6 py-2 rounded-md hover:bg-blue-800 text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {isLoading ? 'Placing Order...' : 'Place Order'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
-
-
-
-        
         </div>
-        <div className="mb-8 mt-20 flex flex-col   items-center justify-between gap-4">
-          <div >
-            <h2 className="text-3xl text-center font-medium text-gray-900">
-            New <span className="text-blue-900">Arrivals</span>
-            </h2>
-            <p className="text-gray-600 font mt-2">
-            Browse The Collection of Top Products
-            </p>
-          </div>
-          </div>
-
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4">
-                       {products.map((product, index) => (
-                         <ProductCard
-                           key={index}
-                           image={product.image}
-                           hoverImage={product.hoverImage}
-                           title={product.title}
-                           category={product.category}
-                           price={product.price}
-                           originalPrice={product.originalPrice}
-                           rating={product.rating}
-                           onSale={product.onSale}
-                           isNew={product.isNew}
-                           weight={product.weight}
-                           onViewProduct={() => handleProductView(product)}
-                         />
-                       ))}
-                     </div>   
       </div>
-        {selectedProduct && (
-          <ProductViewCard 
-            isOpen={isModalOpen} 
-            onClose={handleCloseModal}
-            product={selectedProduct}
-          />
-        )}
     </div>
   );
 };

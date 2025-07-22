@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../../components/Cards/ProductCard';
 import ProductViewCard from '../../components/Cards/ProductViewCard';
+import BASE_URL from '../../config/BaseUrl';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+
+
+const fetchDealOfTheDay = async () => {
+  const response = await axios.get(`${BASE_URL}/api/web-fetch-product-deal-of-the-day`);
+  return response.data;
+};
+
 
 const DealOfTheDay = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -11,7 +21,10 @@ const DealOfTheDay = () => {
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
-
+    const { data, isLoading, error } = useQuery({
+      queryKey: ['dealOfTheDay'],
+      queryFn: fetchDealOfTheDay
+    });
     useEffect(() => {
       const timer = setInterval(() => {
         setTimeLeft(prevTime => {
@@ -68,62 +81,39 @@ const DealOfTheDay = () => {
       setSelectedProduct(null);
     };
 
-    
+    const transformProductData = (apiData) => {
+      if (!apiData || !apiData.data) return [];
+      
+      return apiData.data.map(product => {
+        const defaultImage = product.subs.find(sub => sub.is_default === "true") || product.subs[0];
+        const hoverImage = product.subs.find(sub => sub.is_default === "false") || defaultImage;
+        
+        const productImageUrl = apiData.image_url.find(img => img.image_for === "Product")?.image_url || "";
+        const noImageUrl = apiData.image_url.find(img => img.image_for === "No Image")?.image_url || "";
+        
+        return {
+          id: product.id,
+          image: defaultImage ? `${productImageUrl}${defaultImage.product_images}` : noImageUrl,
+          hoverImage: hoverImage ? `${productImageUrl}${hoverImage.product_images}` : noImageUrl,
+          title: product.product_name,
+          category: product.category_names,
+          price: product.product_mrp,
+          originalPrice: product.product_spl_offer_price > 0 
+            ? product.product_spl_offer_price 
+            : product.product_selling_price,
+          rating: 0,
+          weight: `${product.product_unit_value}${product.unit_name}`,
+          onSale: product.product_spl_offer_price > 0,
+          isNew: true,
+          productData: product
+        };
+      });
+    };
 
-    const products = [
-        {
-          image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/6_1.jpg",
-          hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/6_2.jpg",
-          title: "Mixed Nuts Berries Pack",
-          category: "Dried Fruits",
-          price: "56.00",
-          originalPrice: "45.00",
-          rating: 4,
-          onSale: true
-        },
-        {
-          image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/3_1.jpg",
-          hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/3_2.jpg",
-          title: "Multi Grain Combo Cookies",
-          category: "Cookies",
-          price: "30.00",
-          originalPrice: "25.00",
-          rating: 3,
-          weight: "10kg",
-          onSale: true
-        },
-        {
-          image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/9_1.jpg",
-          hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/9_2.jpg",
-          title: "Fresh Mango Juice Pack",
-          category: "Foods",
-          price: "65.00",
-          originalPrice: "40.00",
-          rating: 2,
-          onSale: true
-        },
-        {
-          image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/2_1.jpg",
-          hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/2_2.jpg",
-          title: "Dates Value Fresh Pouch",
-          category: "Dried Fruits",
-          price: "85.00",
-          originalPrice: "70.00",
-          rating: 3,
-          onSale: true
-        },
-        {
-          image: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/1_1.jpg",
-          hoverImage: "https://maraviyainfotech.com/projects/grabit-react/assets/img/product-images/1_2.jpg",
-          title: "Stick Fiber Masala Magic",
-          category: "Foods",
-          price: "50.00",
-          originalPrice: "45.00",
-          rating: 2,
-          weight: "2pack",
-          isNew: true
-        }
-      ];
+    const products = transformProductData(data);
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
   return (
    <div className="w-full py-8 ">
          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,6 +133,7 @@ const DealOfTheDay = () => {
              {products.map((product, index) => (
                <ProductCard
                  key={index}
+                 id={product.id}
                  image={product.image}
                  hoverImage={product.hoverImage}
                  title={product.title}
