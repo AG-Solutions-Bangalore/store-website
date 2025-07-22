@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSelector } from 'react-redux';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -131,7 +132,7 @@ const Navbar = () => {
     { name: 'Home', path: '/' },
     { name: 'Categories', path: '/categories' },
     { name: 'Products', path: '/product' },
-    { name: 'Checkout', path: '/checkout' },
+    // { name: 'Checkout', path: '/checkout' },
     // { name: 'Offers', path: '/offers', icon: Gift }
   ];
 
@@ -257,7 +258,7 @@ const Navbar = () => {
                 <ShoppingCart size={20} onClick={() => navigate('/cart')} />
                 <div onClick={() => navigate('/cart')} className="hidden sm:flex sm:flex-col text-sm">
                   <span className="text-xs">Cart</span>
-                  <span className="font-medium">3-ITEMS</span>
+                  <span className="font-medium">      {useSelector(state => state.cart.items).length}-ITEMS</span>
                 </div>
               </motion.div>
               
