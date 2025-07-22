@@ -132,7 +132,7 @@ const Navbar = () => {
     { name: 'Categories', path: '/categories' },
     { name: 'Products', path: '/product' },
     { name: 'Checkout', path: '/checkout' },
-    { name: 'Offers', path: '/offers', icon: Gift }
+    // { name: 'Offers', path: '/offers', icon: Gift }
   ];
 
   return (
