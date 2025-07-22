@@ -1,23 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Star, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../redux/slices/CartSlice';
+import useNotification from '../../hooks/useNotification';
 
 const ProductViewCard = ({ isOpen, onClose, product }) => {
+    const dispatch = useDispatch();
     const [quantity, setQuantity] = useState(1);
     const [selectedSize, setSelectedSize] = useState(null);
     const [showZoom, setShowZoom] = useState(false);
     const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
     const [currentImage, setCurrentImage] = useState(null);
     const imageRef = useRef(null);
-
+    const { showNotification, NotificationComponent } = useNotification();
     useEffect(() => {
         if (product) {
             setCurrentImage(product.image);
             setQuantity(1);
-            // Set default size based on product data if available
+      
             if (product.productData?.product_unit_value && product.productData?.unit_name) {
                 setSelectedSize(`${product.productData.product_unit_value}${product.productData.unit_name}`);
             } else {
-                setSelectedSize('250g'); // Fallback default
+                setSelectedSize('250g'); 
             }
         }
     }, [product]);
@@ -27,6 +31,28 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
     const handleQuantityChange = (change) => {
         setQuantity(prev => Math.max(1, prev + change));
     };
+    const handleAddToCart = () => {
+            if (!product) return;
+            
+            const cartItem = {
+                id: product.id,
+                name: product.title,
+                price: product.originalPrice,
+                quantity: quantity,
+                image: product.image,
+                size: selectedSize,
+                
+            };
+            
+            dispatch(addToCart(cartItem)); 
+            showNotification(
+                `${quantity} ${product.title} added to cart!`,
+                'success'
+            );
+            setTimeout(() => {
+                onClose();
+            }, 1000);
+        };
 
     const handleMouseMove = (e) => {
         if (!imageRef.current) return;
@@ -69,6 +95,9 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
         : ['250g', '500g', '1kg', '2kg'];
 
     return (
+        <>
+              <NotificationComponent />
+    
         <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
             {currentImage && (
                 <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -182,11 +211,11 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
 
                                 <div className="flex items-center space-x-3">
                                     <span className="text-3xl font-bold text-gray-900">
-                                        ₹{product.price}
+                                        ₹{product.originalPrice}
                                     </span>
-                                    {product.originalPrice && product.originalPrice !== product.price && (
+                                    {product.price && product.price !== product.originalPrice && (
                                         <span className="text-xl text-gray-500 line-through">
-                                            ₹{product.originalPrice}
+                                            ₹{product.price}
                                         </span>
                                     )}
                                     {product.productData?.product_spl_offer_price > 0 && (
@@ -235,7 +264,9 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
                                         </button>
                                     </div>
 
-                                    <button className="bg-gray-600 text-white p-2 rounded-sm hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
+                                    <button
+                                      onClick={handleAddToCart}
+                                    className="bg-gray-600 text-white p-2 rounded-sm hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
                                         <ShoppingCart className="w-5 h-5" />
                                         <span>Add To Cart</span>
                                     </button>
@@ -265,6 +296,7 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
                 </div>
             )}
         </div>
+        </>
     );
 };
 

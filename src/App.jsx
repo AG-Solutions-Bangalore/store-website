@@ -10,11 +10,18 @@ import Checkout from './pages/checkout/Checkout';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Product from './pages/product/Product';
 import ProductAll from './pages/product/ProductAll';
+import OrderSuccess from './pages/order/OrderSuccess';
+import OrderFailed from './pages/order/OrderFailed';
+
 const queryClient = new QueryClient()
+
+
 function App() {
+
   return (
     <Router>
           <QueryClientProvider client={queryClient}>
+         
     <MainLayout>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -24,6 +31,8 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/product/:id" element={<Product />} />
         <Route path="/product" element={<ProductAll />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/order-failed" element={<OrderFailed />} />
       </Routes>
     </MainLayout>
     </QueryClientProvider>
