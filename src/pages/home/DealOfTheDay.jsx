@@ -4,6 +4,7 @@ import ProductViewCard from '../../components/Cards/ProductViewCard';
 import BASE_URL from '../../config/BaseUrl';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import SkeletonDealOfTheDay from '../../components/skeletons/SkeletonDealOfTheDay';
 
 
 const fetchDealOfTheDay = async () => {
@@ -112,7 +113,11 @@ const DealOfTheDay = () => {
 
     const products = transformProductData(data);
 
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) return (
+      <>
+      <SkeletonDealOfTheDay/>
+      </>
+    )
     if (error) return <div>Error: {error.message}</div>;
   return (
    <div className="w-full py-8 ">

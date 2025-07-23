@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import CategoryCard from '../../components/Cards/CategoryCard';
 import BASE_URL from '../../config/BaseUrl';
+import CategorySkeletonLoading from '../../components/skeletons/CategorySkeletonLoading';
 
 
 
@@ -34,14 +35,19 @@ const CategoriesSection = () => {
        { gradientFrom: "#ecfccb", gradientTo: "#d9f99d" }, // lime
      ];
    
-     if (isLoading) return <div className="text-center py-8">Loading categories...</div>;
+     if (isLoading) return (
+<>
+<CategorySkeletonLoading/>
+</>
+
+     )
      if (error) return <div className="text-center py-8 text-red-500">Error loading categories</div>;
   return (
     <div className="w-full py-8 ">
     <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
      
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
       {data?.data?.map((category, index) => {
      
      const colorIndex = index % gradientColors.length;

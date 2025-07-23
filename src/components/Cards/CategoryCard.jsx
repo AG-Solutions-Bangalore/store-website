@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
+import { encryptId } from '../../utils/Encyrption';
 
 const CategoryCard = ({ 
   id,
@@ -76,13 +77,28 @@ const CategoryCard = ({
             {itemCount} {itemCount === 1 || itemCount === 0 ? 'Item' : 'Items'}
           </p>
           
-          <div onClick={()=> navigate(`/product/${id}`)} className={`mt-2 text-center transition-all duration-300 overflow-hidden ${
+          <button
+          
+          onClick={()=> 
+     
+            {
+
+              const encryptedId = encryptId(id);
+     
+            navigate(`/product/${encodeURIComponent(encryptedId)}`)
+          }
+          
+          }
+          
+          
+          
+          className={`mt-2 text-center transition-all duration-300 overflow-hidden ${
             isHovered ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
           }`}>
             <button className="text-[10px] sm:text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full transition-colors duration-200 cursor-pointer">
               View Details
             </button>
-          </div>
+          </button>
         </div>
       </div>
       

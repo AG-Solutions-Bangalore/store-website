@@ -15,11 +15,40 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
+import { useCompanyData } from '../../hooks/useCompanyData';
+import axios from 'axios';
+import BASE_URL from '../../config/BaseUrl';
+import { useQuery } from '@tanstack/react-query';
+import { encryptId } from '../../utils/Encyrption';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
- 
+  const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+   const {
+     storeName,
+     storeDescription,
+     storeLogoImage,
+     supportEmail,
+     supportPhone,
+     supportWhatsapp,
+     appStoreUrl,
+     googleStoreUrl,
+     isLoading,
+     error,
+   } = useCompanyData();
+   const fetchAllProducts = async () => {
+    const response = await axios.get(`${BASE_URL}/api/web-fetch-product`);
+    return response.data;
+  };
+
+  const { data: productsData, isLoading: productsLoading } = useQuery({
+    queryKey: ['allProducts'],
+    queryFn: fetchAllProducts
+  });
 
 
   useEffect(() => {
@@ -127,11 +156,43 @@ const Navbar = () => {
       transition: { duration: 0.4, ease: "easeOut" }
     }
   };
+ useEffect(() => {
+     if (searchQuery.trim() === '') {
+       setSearchResults([]);
+       return;
+     }
+ 
+     if (productsData?.data) {
+       const results = productsData.data.filter(product =>
+         product.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         product.category_names.toLowerCase().includes(searchQuery.toLowerCase())
+       );
+       setSearchResults(results.slice(0, 5)); 
+     }
+   }, [searchQuery, productsData]);
+
+const handleSearchSubmit = (e) => {
+  e.preventDefault();
+  if (searchQuery.trim()) {
+    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    setShowSearchResults(false);
+    setSearchQuery('');
+  }
+};
+
+const handleProductClick = (productId) => {
+  console.log("id before",productId)
+  const encryptedId = encryptId(productId);
+  console.log("id after",encryptedId)
+  navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
+  setShowSearchResults(false);
+  setSearchQuery('');
+};
 
   const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Categories', path: '/categories' },
-    { name: 'Products', path: '/product' },
+    { name: 'Products', path: '/products' },
     // { name: 'Checkout', path: '/checkout' },
     // { name: 'Offers', path: '/offers', icon: Gift }
   ];
@@ -162,11 +223,11 @@ const Navbar = () => {
               <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2 text-gray-600">
                   <Phone size={12} />
-                  <span>+91 987 654 3210</span>
+                  <span>{supportPhone}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-600">
                   <MessageCircleCode size={12} />
-                  <span>+91 988 888 8888</span>
+                  <span>{supportWhatsapp}</span>
                 </div>
               </div>
               
@@ -209,7 +270,7 @@ const Navbar = () => {
               onClick={() => navigate('/')}
             >
               <img
-                src="/logo-bg.png"
+                     src={storeLogoImage}
                 alt="Lohiya's Logo"
                 className="h-10 w-auto"
               />
@@ -237,13 +298,91 @@ const Navbar = () => {
 
             {/* Right side - Search and Cart */}
             <div className="flex items-center space-x-6">
-              <motion.div 
-                className="text-gray-600 hover:text-gray-900 cursor-pointer hidden sm:block transition-colors duration-300"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Search size={20} />
-              </motion.div>
+                <div 
+                              className="relative hidden sm:block"
+                       
+                            >
+                              <form onSubmit={handleSearchSubmit}>
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    placeholder="Search products..."
+                                    className="w-48 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none  focus:ring-0 focus:ring-blue-500 focus:border-blue-500 "
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => {
+                                      setIsSearchFocused(true);
+                                      setShowSearchResults(true);
+                                    }}
+                                    onBlur={() => {
+                                      setTimeout(() => {
+                                        setIsSearchFocused(false);
+                                        setShowSearchResults(false);
+                                      }, 200);
+                                    }}
+                                  />
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Search size={18} className="text-gray-400" />
+                                  </div>
+                                </div>
+                              </form>
+              
+                              {/* Search Results Dropdown */}
+                              {showSearchResults && searchResults.length > 0 && (
+                                <div
+                                  className="absolute z-50 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200"
+                 
+                                >
+                                  <div className="py-1">
+                                    {searchResults.map((product) => (
+                                      <div
+                                        key={product.id}
+                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                                        onClick={() => handleProductClick(product.id)}
+                                 
+                                      >
+                                        <div className="flex-shrink-0 mr-3">
+                                          {product.subs?.[0]?.product_images ? (
+                                            <img
+                                              src={`${productsData.image_url.find(img => img.image_for === "Product").image_url}${product.subs[0].product_images}`}
+                                              alt={product.product_name}
+                                              className="h-10 w-10 object-cover rounded"
+                                            />
+                                          ) : (
+                                            <img
+                                              src={productsData.image_url.find(img => img.image_for === "No Image").image_url}
+                                              alt="No image"
+                                              className="h-10 w-10 object-cover rounded"
+                                            />
+                                          )}
+                                        </div>
+                                        <div>
+                                          <div className="text-sm font-medium text-gray-900 truncate">
+                                            {product.product_name}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            {product.category_names}
+                                          </div>
+                                          <div className="text-sm font-semibold text-blue-600">
+                                            ₹{
+                                            product.product_spl_offer_price > 0 ? product.product_spl_offer_price : 
+                                            product.product_selling_price
+                                            }
+                                          {( product.product_mrp != product.product_selling_price) && (
+                                            <span className="ml-2 text-xs text-gray-500 line-through">
+                                                ₹{product.product_mrp}
+                                              </span>
+                                          )}
+                                              
+                                         
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
               
               <motion.div 
                 className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors duration-300"
@@ -380,20 +519,76 @@ const Navbar = () => {
 
           {/* Search Box */}
           <motion.div
-            className="mt-6"
-            variants={menuItemVariants}
-          >
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={16} className="text-gray-400" />
-              </div>
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm placeholder-gray-400 transition-all duration-200"
-              />
-            </div>
-          </motion.div>
+                        className="mb-4"
+                        variants={menuItemVariants}
+                      >
+                        <form onSubmit={handleSearchSubmit}>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Search size={16} className="text-gray-400" />
+                            </div>
+                            <input 
+                              type="text" 
+                              placeholder="Search products..." 
+                              className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:ring-0 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm placeholder-gray-400 transition-all duration-200"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onFocus={() => setShowSearchResults(true)}
+                              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+                            />
+                          </div>
+                        </form>
+                        
+                        {/* Mobile Search Results */}
+                        {showSearchResults && searchResults.length > 0 && (
+                          <motion.div
+                            className="mt-2 bg-white rounded-lg shadow-md border border-gray-200"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <div className="py-1">
+                              {searchResults.map((product) => (
+                                <motion.div
+                                  key={product.id}
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => {
+                                    handleProductClick(product.id);
+                                    setMobileMenuOpen(false);
+                                  }}
+                                  whileHover={{ backgroundColor: "#f3f4f6" }}
+                                >
+                                  <div className="flex items-center">
+                                    <div className="flex-shrink-0 mr-3">
+                                      {product.subs?.[0]?.product_images ? (
+                                        <img
+                                          src={`${productsData.image_url.find(img => img.image_for === "Product").image_url}${product.subs[0].product_images}`}
+                                          alt={product.product_name}
+                                          className="h-8 w-8 object-cover rounded"
+                                        />
+                                      ) : (
+                                        <img
+                                          src={productsData.image_url.find(img => img.image_for === "No Image").image_url}
+                                          alt="No image"
+                                          className="h-8 w-8 object-cover rounded"
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="truncate">
+                                      <div className="text-sm font-medium text-gray-900 truncate">
+                                        {product.product_name}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        ₹{product.product_selling_price}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </motion.div>
 
           {/* Contact Info */}
           <motion.div

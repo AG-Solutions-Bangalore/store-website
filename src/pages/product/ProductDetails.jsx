@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Star, Heart, Eye, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { Star, Heart, Eye, ChevronLeft, ChevronRight, Settings, X } from 'lucide-react';
 import ProductCard from '../../components/Cards/ProductCard';
 import ProductViewCard from '../../components/Cards/ProductViewCard';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import BASE_URL from '../../config/BaseUrl';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../redux/slices/CartSlice';
+import { toast } from 'sonner';
+import { Drawer } from 'vaul';
+import ProductDetailsSkeleton from '../../components/skeletons/ProductDetailsSkeleton';
+import { decryptId } from '../../utils/Encyrption';
 
 const fetchProductDetails = async (productId) => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-product-by-id/${productId}`);
@@ -19,7 +25,10 @@ const fetchRelatedProducts = async (categoryId) => {
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const decryptedId = decryptId(id);
   const [selectedWeight, setSelectedWeight] = useState('250g');
+  const [activeTab, setActiveTab] = useState('specs');
+  const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showZoom, setShowZoom] = useState(false);
@@ -27,11 +36,12 @@ const ProductDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const imageRef = useRef(null);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Fetch product details
   const { data: productData, isLoading, error } = useQuery({
-    queryKey: ['productDetails', id],
-    queryFn: () => fetchProductDetails(id)
+    queryKey: ['productDetails', decryptedId],
+    queryFn: () => fetchProductDetails(decryptedId)
   });
 
   // Fetch related products
@@ -43,11 +53,20 @@ const ProductDetails = () => {
 
   const handleProductView = (product) => {
     setSelectedProduct(product);
-    setIsModalOpen(true);
+    if (window.innerWidth < 768) {
+      setIsMobileDrawerOpen(true);
+    } else {
+      setIsModalOpen(true);
+    }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsMobileDrawerOpen(false);
     setSelectedProduct(null);
   };
 
@@ -70,8 +89,8 @@ const ProductDetails = () => {
       category: product.category_names,
       price: product.product_mrp,
       originalPrice: product.product_spl_offer_price > 0 
-        ? product.product_selling_price 
-        : product.product_mrp,
+      ? product.product_spl_offer_price 
+      : product.product_selling_price,
       rating: 0,
       weight: `${product.product_unit_value}${product.unit_name}`,
       onSale: product.product_spl_offer_price > 0,
@@ -99,15 +118,15 @@ const ProductDetails = () => {
         category: product.category_names,
         price: product.product_mrp,
         originalPrice: product.product_spl_offer_price > 0 
-          ? product.product_selling_price 
-          : product.product_mrp,
+        ? product.product_spl_offer_price 
+        : product.product_selling_price,
         rating: 0,
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
         isNew: true,
         productData: product
       };
-    }).filter(product => product.id !== parseInt(id)); // Exclude current product
+    }).filter(product => product.id !== parseInt(id)); 
   };
 
   const product = transformProductData(productData);
@@ -116,13 +135,20 @@ const ProductDetails = () => {
 
   const weightOptions = product ? [product.weight] : ['250g', '500g', '1kg', '2kg'];
 
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, index) => (
-      <Star
-        key={index}
-        className={`w-3 h-3 ${index < rating ? 'text-orange-400 fill-orange-400' : 'text-gray-300'}`}
-      />
-    ));
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    const cartItem = {
+      id: product.id,
+      name: product.title,
+      price: product.originalPrice,
+      quantity: quantity,
+      image: product.image,
+      size: product.weight,
+    };
+    
+    dispatch(addToCart(cartItem));
+    toast.success(`${product.title} added to cart`);
   };
 
   const handleMouseMove = (e) => {
@@ -162,21 +188,28 @@ const ProductDetails = () => {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading product</div>;
-  if (!product) return <div>Product not found</div>;
-
-  // Calculate discount percentage if on sale
-  const discountPercentage = product.onSale 
-    ? Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)
-    : 0;
+  if (isLoading) return (
+    <ProductDetailsSkeleton/>
+  );
+  
+  if (error) return (
+    <div className="flex justify-center items-center h-screen text-red-500">
+      Error loading product
+    </div>
+  );
+  
+  if (!product) return (
+    <div className="flex justify-center items-center h-screen text-gray-500">
+      Product not found
+    </div>
+  );
 
   return (
-    <div className="w-full py-8">
+    <div className="w-full py-4 md:py-8">
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8">
           {/* Left side - Product Images */}
-          <div className="space-y-4 border p-1 rounded-md border-gray-200 ">
+          <div className="space-y-4 border p-1 col-span-1 md:col-span-2 rounded-md border-gray-200">
             {/* Main Product Image */}
             <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-square">
               <div
@@ -190,6 +223,7 @@ const ProductDetails = () => {
                   src={productImages[currentImageIndex]}
                   alt={product.title}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 
                 {/* Sale/New badge */}
@@ -204,9 +238,9 @@ const ProductDetails = () => {
                   </div>
                 )}
                 
-                {/* Zoom Effect */}
-                {showZoom && (
-                  <div className="absolute inset-0 overflow-hidden">
+                {/* Zoom Effect - Desktop only */}
+                {showZoom && window.innerWidth > 768 && (
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <img
                       src={productImages[currentImageIndex]}
                       alt={`${product.title} - Zoomed`}
@@ -220,10 +254,11 @@ const ProductDetails = () => {
                     <div
                       className="absolute border-2 border-white rounded-full pointer-events-none shadow-lg"
                       style={{
-                        width: '1px',
-                        height: '1px',
+                        width: '150px',
+                        height: '150px',
                         left: `calc(${zoomPosition.x}% - 75px)`,
                         top: `calc(${zoomPosition.y}% - 75px)`,
+                        opacity: 0.3
                       }}
                     />
                   </div>
@@ -235,15 +270,15 @@ const ProductDetails = () => {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md z-20"
+                    className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-1 md:p-2 rounded-full shadow-md z-20"
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md z-20"
+                    className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-1 md:p-2 rounded-full shadow-md z-20"
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </>
               )}
@@ -251,12 +286,12 @@ const ProductDetails = () => {
 
             {/* Thumbnail Images */}
             {productImages.length > 1 && (
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 overflow-x-auto pb-2">
                 {productImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                    className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 ${
                       currentImageIndex === index ? 'border-blue-500' : 'border-gray-200'
                     }`}
                   >
@@ -264,6 +299,7 @@ const ProductDetails = () => {
                       src={image}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   </button>
                 ))}
@@ -272,45 +308,35 @@ const ProductDetails = () => {
           </div>
 
           {/* Right side - Product Details */}
-          <div className="space-y-6 relative">
+          <div className="space-y-4 md:space-y-6 relative col-span-1 md:col-span-3">
             {/* Product Title */}
             <div>
-              <h1 className="text-2xl font-medium text-gray-800 mb-2">
+              <h1 className="text-xl md:text-2xl font-medium text-gray-800 mb-1 md:mb-2">
                 {product.title}
               </h1>
               
-              {/* Rating */}
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="flex">
-                  {renderStars(product.rating)}
-                </div>
-                <span className="text-sm text-gray-500">0 Ratings</span>
-              </div>
+              
             </div>
 
             {/* Price */}
-            <div className="flex items-center space-x-3">
-              <span className="text-3xl font-bold text-gray-900">₹{product.price}</span>
-              {product.originalPrice && product.originalPrice !== product.price && (
-                <>
-                  <span className="text-lg text-gray-500 line-through">₹{product.originalPrice}</span>
-                  {discountPercentage > 0 && (
-                    <span className="text-green-600 font-medium">-{discountPercentage}%</span>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* SKU and Stock */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">SKU#: {product.productData?.product_unique || 'N/A'}</span>
-              <span className="text-sm text-green-600">IN STOCK</span>
-            </div>
-
-            {/* MRP */}
-            <div className="text-sm text-gray-600">
-              M.R.P.: ₹{product.productData?.product_mrp || 'N/A'}
-            </div>
+            {(product.price == product.originalPrice) ? (
+              <div className="flex items-center gap-2">
+                <span className="text-2xl md:text-3xl font-bold text-gray-900">
+                  &#8377;{product.price}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-2xl md:text-3xl font-bold text-gray-900">
+                  &#8377;{product.originalPrice}
+                </span>
+                {product.price && (
+                  <span className="text-lg md:text-xl text-gray-500 line-through">
+                    &#8377;{product.price}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Description */}
             <p className="text-gray-600 text-sm leading-relaxed">
@@ -322,149 +348,136 @@ const ProductDetails = () => {
             {/* Product Details */}
             <div className="space-y-2 text-sm">
               <div className="flex">
-                <span className="text-gray-600 w-32">Brand:</span>
+                <span className="text-gray-600 w-24 md:w-32">Brand:</span>
                 <span className="text-gray-900">{product.productData?.product_brand || 'N/A'}</span>
               </div>
               <div className="flex">
-                <span className="text-gray-600 w-32">Category:</span>
+                <span className="text-gray-600 w-24 md:w-32">Category:</span>
                 <span className="text-gray-900">{product.category}</span>
               </div>
               <div className="flex">
-                <span className="text-gray-600 w-32">Weight:</span>
+                <span className="text-gray-600 w-24 md:w-32">Unit:</span>
                 <span className="text-gray-900">{product.weight}</span>
               </div>
             </div>
 
             {/* Weight Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                WEIGHT
-              </label>
               <div className="flex flex-wrap gap-2">
-                {weightOptions.map((weight) => (
-                  <button
-                    key={weight}
-                    onClick={() => setSelectedWeight(weight)}
-                    className={`px-4 py-2 border rounded text-sm font-medium transition-colors ${
-                      selectedWeight === weight
-                        ? 'bg-blue-900 text-white border-blue-500'
-                        : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                    }`}
+            
+                  <p
+                  className={`px-3 py-1 md:px-4 md:py-2 border rounded text-xs md:text-sm font-medium transition-colors bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200`}
                   >
-                    {weight}
-                  </button>
-                ))}
+                  {product.weight}
+                  </p>
               </div>
             </div>
 
             {/* Quantity and Add to Cart */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 md:space-x-4">
               <div className="flex items-center border border-gray-300 rounded">
                 <button
                   onClick={() => handleQuantityChange('decrement')}
-                  className="px-3 py-2 hover:bg-gray-100 transition-colors"
+                  className="px-2 py-1 md:px-3 md:py-2 hover:bg-gray-100 transition-colors text-sm md:text-base"
                 >
                   -
                 </button>
-                <span className="px-4 py-2 text-center min-w-[3rem]">
+                <span className="px-3 py-1 md:px-4 md:py-2 text-center min-w-[2rem] md:min-w-[3rem] text-sm md:text-base">
                   {quantity}
                 </span>
                 <button
                   onClick={() => handleQuantityChange('increment')}
-                  className="px-3 py-2 hover:bg-gray-100 transition-colors"
+                  className="px-2 py-1 md:px-3 md:py-2 hover:bg-gray-100 transition-colors text-sm md:text-base"
                 >
                   +
                 </button>
               </div>
 
-              <button className="flex-1 bg-blue-900 text-white px-6 py-3 rounded hover:bg-gray-700 transition-colors font-medium">
+              <button 
+                onClick={handleAddToCart}
+                className="flex-1 md:flex-none md:w-56 text-center bg-blue-900 text-white px-4 py-1.5 md:px-6 md:py-2.5 rounded hover:bg-gray-700 transition-colors font-medium text-sm md:text-base"
+              >
                 ADD TO CART
               </button>
-
-              <button className="p-3 border border-gray-300 rounded hover:bg-gray-100 transition-colors">
-                <Heart className="w-5 h-5" />
-              </button>
-
-              <button className="p-3 border border-gray-300 rounded hover:bg-gray-100 transition-colors">
-                <Eye className="w-5 h-5" />
-              </button>
             </div>
-          </div>
-        </div>
 
-        {/* Related Products */}
-        <div className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedProducts.slice(0, 3).map((product, index) => (
-              <div key={index} className="bg-gray-200/70 flex flex-row items-center gap-4 rounded-md shadow-sm border border-gray-200 p-2">
-                <div className="border border-gray-200 rounded-md bg-white">
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-16 h-16 rounded-lg m-auto"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-thin text-sm text-gray-600 mb-2">{product.title}</h3>
-                  <div className="flex items-center space-x-1 mb-2">
-                    {renderStars(product.rating)}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium text-gray-900">₹{product.price}</span>
-                    {product.originalPrice && product.originalPrice !== product.price && (
-                      <span className="text-gray-500 line-through text-sm">₹{product.originalPrice}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+           
           </div>
         </div>
 
         {/* Product Tabs */}
-        <div className="mt-12">
-          <div className="flex space-x-2">
-            <button className="text-white px-6 py-2 rounded-md shadow-md border border-bule-600 bg-blue-900 font-medium">
-              Detail
-            </button>
-            <button className="px-6 py-2 rounded-md border border-gray-200">
+        <div className="mt-6 md:mt-8">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+          
+            <button
+              onClick={() => setActiveTab('specs')}
+              className={`px-4 py-1 md:px-6 md:py-2 rounded-md border font-medium whitespace-nowrap ${
+                activeTab === 'specs'
+                  ? 'text-white bg-blue-900 border-blue-600'
+                  : 'border-gray-200'
+              }`}
+            >
               Specifications
             </button>
-            <button className="px-6 py-2 rounded-md border border-gray-200">
-              Vendor
-            </button>
-            <button className="px-6 py-2 rounded-md border border-gray-200">
-              Reviews
+            <button
+              onClick={() => setActiveTab('detail')}
+              className={`px-4 py-1 md:px-6 md:py-2 rounded-md shadow-md border font-medium whitespace-nowrap ${
+                activeTab === 'detail'
+                  ? 'text-white bg-blue-900 border-blue-600'
+                  : 'border-gray-200'
+              }`}
+            >
+              Detail
             </button>
           </div>
 
           {/* Tab Content */}
           <div className="mt-1 border border-gray-200 rounded-md p-4">
-            <p className="text-gray-600 text-sm leading-relaxed">
-              {product.productData?.product_short_description !== 'undefined' 
-                ? product.productData.product_short_description 
-                : 'No additional details available.'}
-            </p>
+            {activeTab === 'detail' && (
+              <p className="text-gray-600 text-sm leading-relaxed">
+                {product.productData?.product_short_description !== 'undefined'
+                  ? product.productData.product_short_description
+                  : 'No additional details available.'}
+              </p>
+            )}
+            {activeTab === 'specs' && (
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex">
+                  <span className="w-24 md:w-32 text-gray-600">Brand:</span>
+                  <span>{product.productData?.product_brand || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 md:w-32 text-gray-600">Category:</span>
+                  <span>{product.category}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 md:w-32 text-gray-600">Unit:</span>
+                  <span>{product.weight}</span>
+                </div>
+                {/* Add more specification fields as needed */}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Related Products Section */}
-        <div className="mb-8 mt-20 flex flex-col items-center justify-between gap-4">
+        <div className="mb-6 md:mb-8 mt-8 md:mt-12 flex flex-col items-center justify-between gap-3 md:gap-4">
           <div>
-            <h2 className="text-3xl text-center font-medium text-gray-900">
+            <h2 className="text-2xl md:text-3xl text-center font-medium text-gray-900">
               Related <span className="text-blue-900">Products</span>
             </h2>
-            <p className="text-gray-600 font mt-2">
+            <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
               Browse The Collection of Top Products
             </p>
           </div>
         </div>
 
         {/* Related Products Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
           {relatedProducts.slice(0, 5).map((product, index) => (
             <ProductCard
               key={index}
+              id={product.id}
               image={product.image}
               hoverImage={product.hoverImage}
               title={product.title}
@@ -481,14 +494,16 @@ const ProductDetails = () => {
         </div>
       </div>
       
-      {/* Product View Modal */}
-      {selectedProduct && (
+      {/* Product View Modal - Desktop */}
+      {selectedProduct && !isMobileDrawerOpen && (
         <ProductViewCard 
           isOpen={isModalOpen} 
           onClose={handleCloseModal}
           product={selectedProduct}
         />
       )}
+
+ 
     </div>
   );
 };
