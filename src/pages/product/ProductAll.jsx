@@ -5,6 +5,7 @@ import ProductCard from '../../components/Cards/ProductCard';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import BASE_URL from '../../config/BaseUrl';
+import SkeletonProductAllLoading from '../../components/skeletons/SkeletonProductAllLoading';
 
 const fetchAllProducts = async () => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-product`);
@@ -24,6 +25,7 @@ const ProductAll = () => {
   const productsPerPage = 6;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['allProducts'],
@@ -49,8 +51,8 @@ const ProductAll = () => {
         category: product.category_names,
         price: product.product_mrp,
         originalPrice: product.product_spl_offer_price > 0 
-          ? product.product_selling_price 
-          : product.product_mrp,
+        ? product.product_spl_offer_price 
+        : product.product_selling_price,
         rating: 0,
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
@@ -71,7 +73,7 @@ const ProductAll = () => {
     });
     return Array.from(categorySet).map(category => ({
       name: category,
-      icon: '🍎', // Default icon
+      icon: '', // Default icon
       selected: false
     }));
   }, [data]);
@@ -118,12 +120,7 @@ const ProductAll = () => {
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const ratingMatch = selectedRating === 'all' || 
-        (selectedRating === '4+' && product.rating >= 4) ||
-        (selectedRating === '3+' && product.rating >= 3) ||
-        (selectedRating === '2+' && product.rating >= 2);
-      
-      return categoryMatch && weightMatch && priceMatch && searchMatch && ratingMatch;
+      return categoryMatch && weightMatch && priceMatch && searchMatch;
     });
 
     if (sortBy === 'price-low') {
@@ -148,17 +145,30 @@ const ProductAll = () => {
     setCurrentPage(1);
   }, [selectedCategories, selectedWeights, priceRange, searchTerm, selectedRating, sortBy]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return (
+    <SkeletonProductAllLoading/>
+  );
   if (error) return <div>Error loading products</div>;
 
   return (
-    <div className="w-full py-8">
+    <div className="w-full py-4 md:py-8">
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8"> 
-        <div className="flex gap-8">
-          {/* Left Sidebar - Filters */}
-          <div className="w-80 space-y-6">
+        {/* Mobile filter button */}
+        <div className="md:hidden mb-4">
+          <button
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="w-full py-2 px-4 bg-blue-900 text-white rounded-md flex items-center justify-between"
+          >
+            <span>{showMobileFilters ? 'Hide Filters' : 'Show Filters'}</span>
+            <ChevronDown className={`w-5 h-5 transition-transform ${showMobileFilters ? 'transform rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+          {/* Left Sidebar - Filters - Hidden on mobile unless toggled */}
+          <div className={`${showMobileFilters ? 'block' : 'hidden'} md:block w-full md:w-80 space-y-4 md:space-y-6`}>
             {/* Category Filter */}
-            <div className="bg-white rounded-md border border-gray-200 p-6">
+            <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Category</h3>
                 <ChevronDown className="w-5 h-5 text-gray-500" />
@@ -190,7 +200,7 @@ const ProductAll = () => {
             </div>
 
             {/* Weight Filter */}
-            <div className="bg-white rounded-md border border-gray-200 p-6">
+            <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Weight</h3>
                 <ChevronDown className="w-5 h-5 text-gray-500" />
@@ -221,7 +231,7 @@ const ProductAll = () => {
             </div>
 
             {/* Price Filter */}
-            <div className="bg-white rounded-md border border-gray-200 p-6">
+            <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Price</h3>
                 <ChevronDown className="w-5 h-5 text-gray-500" />
@@ -263,65 +273,63 @@ const ProductAll = () => {
 
           {/* Right - Products */}
           <div className="flex-1">
-            <div className="bg-white rounded-md border border-gray-200 p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-  {/* Show selected categories */}
-  {selectedCategories.slice(0, 3).map((category, index) => (
-    <span
-      key={`category-${index}`}
-      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-    >
-      {category}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedCategories(prev => prev.filter(c => c !== category));
-        }}
-        className="ml-1 hover:text-blue-600"
-      >
-        <X className="w-3 h-3" />
-      </button>
-    </span>
-  ))}
-  
-  {/* Show selected weights */}
-  {selectedWeights.slice(0, 3).map((weight, index) => (
-    <span
-      key={`weight-${index}`}
-      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-    >
-      {weight}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedWeights(prev => prev.filter(w => w !== weight));
-        }}
-        className="ml-1 hover:text-blue-600"
-      >
-        <X className="w-3 h-3" />
-      </button>
-    </span>
-  ))}
+            <div className="bg-white rounded-md border border-gray-200 p-4 mb-4 md:mb-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center flex-wrap gap-2">
+                  {/* Show selected categories */}
+                  {selectedCategories.slice(0, 3).map((category, index) => (
+                    <span
+                      key={`category-${index}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {category}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCategories(prev => prev.filter(c => c !== category));
+                        }}
+                        className="ml-1 hover:text-blue-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  
+                  {/* Show selected weights */}
+                  {selectedWeights.slice(0, 3).map((weight, index) => (
+                    <span
+                      key={`weight-${index}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {weight}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedWeights(prev => prev.filter(w => w !== weight));
+                        }}
+                        className="ml-1 hover:text-blue-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
 
-  {/* Clear All button */}
-  {(selectedCategories.length > 0 || selectedWeights.length > 0) && (
-    <button
-      onClick={() => {
-        setSelectedCategories([]);
-        setSelectedWeights([]);
-      }}
-      className="px-3 py-1 text-xs text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-    >
-      Clear All
-    </button>
-  )}
-</div>
+                  {/* Clear All button */}
+                  {(selectedCategories.length > 0 || selectedWeights.length > 0) && (
+                    <button
+                      onClick={() => {
+                        setSelectedCategories([]);
+                        setSelectedWeights([]);
+                      }}
+                      className="px-3 py-1 text-xs text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  )}
                 </div>
                 
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
+                <div className="flex flex-col md:flex-row items-start md:items-center w-full md:w-auto gap-3 md:gap-4">
+                  <div className="flex items-center space-x-2 w-full md:w-auto">
                     <button
                       onClick={() => setShowSearch(!showSearch)}
                       className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -334,39 +342,27 @@ const ProductAll = () => {
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                        className="flex-1 min-w-36 md:min-w-[200px] px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         autoFocus
                       />
                     )}
                   </div>
                   
                   <select
-                    value={selectedRating}
-                    onChange={(e) => setSelectedRating(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Ratings</option>
-                    <option value="4+">4+ Stars</option>
-                    <option value="3+">3+ Stars</option>
-                    <option value="2+">2+ Stars</option>
-                  </select>
-                  
-                  <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="default">Sort by</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
-                    <option value="rating">Rating</option>
                     <option value="name">Name</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-8">
               {currentProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -387,7 +383,7 @@ const ProductAll = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2">
+              <div className="flex items-center justify-center space-x-2 overflow-x-auto py-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
@@ -421,7 +417,7 @@ const ProductAll = () => {
             )}
 
             {filteredAndSortedProducts.length === 0 && (
-              <div className="text-center py-12">
+              <div className="text-center py-8 md:py-12">
                 <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
                 <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
               </div>

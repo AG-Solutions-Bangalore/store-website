@@ -1,11 +1,18 @@
 import { CheckCircle2 } from 'lucide-react';
+import moment from 'moment/moment';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const OrderSuccess = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const orderData = state?.orderData;
-
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = d.toLocaleString('default', { month: 'short' }); // 'Jan', 'Feb', etc.
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -24,10 +31,12 @@ const OrderSuccess = () => {
             <h2 className="text-lg font-medium text-gray-900">Order Summary</h2>
             <div className="mt-3 sm:mt-0">
               <p className="text-sm text-gray-500">
-                Order #: <span className="font-medium text-gray-900">{orderData?.order_id}</span>
+                Order : <span className="font-medium text-gray-900">{orderData?.order_id}</span>
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Date: <span className="font-medium text-gray-900">{new Date().toLocaleDateString()}</span>
+                Date: <span className="font-medium text-gray-900">
+  {moment().format('DD-MMM-YYYY')}
+</span>
               </p>
             </div>
           </div>

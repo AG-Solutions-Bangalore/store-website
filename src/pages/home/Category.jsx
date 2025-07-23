@@ -4,6 +4,7 @@ import axios from 'axios';
 
 import CategoryCard from '../../components/Cards/CategoryCard';
 import BASE_URL from '../../config/BaseUrl';
+import CategorySkeletonHomeLoading from '../../components/skeletons/CategorySkeletonHomeLoading';
 
 const fetchCategories = async () => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-category`);
@@ -30,7 +31,11 @@ const Category = () => {
     { gradientFrom: "#ecfccb", gradientTo: "#d9f99d" }, // lime
   ];
 
-  if (isLoading) return <div className="text-center py-8">Loading categories...</div>;
+  if (isLoading) return (
+    <>
+    <CategorySkeletonHomeLoading/>
+    </>
+  )
   if (error) return <div className="text-center py-8 text-red-500">Error loading categories</div>;
 
   return (

@@ -6,6 +6,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../../redux/slices/CartSlice';
 import { useNavigate } from 'react-router-dom';
 import BASE_URL from '../../config/BaseUrl';
+
+import { toast } from "sonner";
 import useNumericInput from "../../hooks/useNumericInput";
 
 const Checkout = () => {
@@ -124,7 +126,7 @@ const Checkout = () => {
     onSuccess: (data) => {
       if (data.code === 201) {
         const orderData = {
-          order_id: `TEMP-${Date.now()}`, 
+          order_id: `${data.data}`, 
           total_amount: total.toFixed(2),
           address: formData.address,
           mobile: formData.mobile,
@@ -140,6 +142,7 @@ const Checkout = () => {
         };
         dispatch(clearCart());
         navigate('/order-success', { state: { orderData } });
+        toast.success(`${data.message}`)
       }
     },
     onError: (error) => {

@@ -4,6 +4,7 @@ import ProductViewCard from '../../components/Cards/ProductViewCard';
 import axios from "axios";
 import BASE_URL from "../../config/BaseUrl";
 import { useQuery } from "@tanstack/react-query";
+import SkeletonNewArrivalLoading from "../../components/skeletons/SkeletonNewArrivalLoading";
 
 const fetchNewArrivals = async () => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-product-new-arrivals`);
@@ -65,8 +66,8 @@ const transformProductData = (apiData) => {
       category: product.category_names,
       price: product.product_mrp,
       originalPrice: product.product_spl_offer_price > 0 
-        ? product.product_selling_price 
-        : product.product_mrp,
+      ? product.product_spl_offer_price 
+      : product.product_selling_price,
       rating: 0,
       weight: `${product.product_unit_value}${product.unit_name}`,
       onSale: product.product_spl_offer_price > 0,
@@ -96,7 +97,11 @@ const filteredProducts = activeCategory === 'All'
   ? getMixedProducts()
   : transformProductData(data).filter(product => product.category === activeCategory)
 
-if (isLoading) return <div>Loading...</div>;
+if (isLoading) return (
+  <>
+  <SkeletonNewArrivalLoading/>
+  </>
+);
 if (error) return <div>Error loading products</div>;
 
 const categories = getUniqueCategories();

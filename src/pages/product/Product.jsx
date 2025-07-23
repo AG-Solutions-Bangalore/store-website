@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import BASE_URL from '../../config/BaseUrl';
+import SkeletonProductCategoriesLoading from '../../components/skeletons/SkeletonProductCategoriesLoading';
+import { decryptId } from '../../utils/Encyrption';
 
 const fetchCategoryProducts = async (categoryId) => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-categoryproduct-by-id/${categoryId}`);
@@ -14,15 +16,15 @@ const fetchCategoryProducts = async (categoryId) => {
 
 const Product = () => {
   const { id } = useParams();
+  const decryptedId = decryptId(id);
   const { data, isLoading, error } = useQuery({
-    queryKey: ['categoryProducts', id],
-    queryFn: () => fetchCategoryProducts(id)
+    queryKey: ['categoryProducts', decryptedId],
+    queryFn: () => fetchCategoryProducts(decryptedId)
   });
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedWeights, setSelectedWeights] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 10000]);
-
   const [sortBy, setSortBy] = useState('default');
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -31,7 +33,7 @@ const Product = () => {
   const productsPerPage = 6;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const transformProductData = (apiData) => {
     if (!apiData || !apiData.products) return [];
@@ -51,8 +53,8 @@ const Product = () => {
         category: product.category_names,
         price: product.product_mrp,
         originalPrice: product.product_spl_offer_price > 0 
-          ? product.product_selling_price 
-          : product.product_mrp,
+        ? product.product_spl_offer_price 
+        : product.product_selling_price,
         rating: 0,
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
@@ -64,7 +66,6 @@ const Product = () => {
 
   const products = transformProductData(data);
   
-
   const weights = useMemo(() => {
     const weightSet = new Set();
     products.forEach(product => {
@@ -72,11 +73,6 @@ const Product = () => {
     });
     return Array.from(weightSet);
   }, [products]);
-
-
- 
-
-  
 
   const handleProductView = (product) => {
     setSelectedProduct(product);
@@ -103,12 +99,7 @@ const Product = () => {
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const ratingMatch = selectedRating === 'all' || 
-        (selectedRating === '4+' && product.rating >= 4) ||
-        (selectedRating === '3+' && product.rating >= 3) ||
-        (selectedRating === '2+' && product.rating >= 2);
-      
-      return categoryMatch && weightMatch && priceMatch && searchMatch && ratingMatch;
+      return categoryMatch && weightMatch && priceMatch && searchMatch;
     });
 
     if (sortBy === 'price-low') {
@@ -133,16 +124,27 @@ const Product = () => {
     setCurrentPage(1);
   }, [selectedCategories, selectedWeights, priceRange, searchTerm, selectedRating, sortBy]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <SkeletonProductCategoriesLoading/>;
   if (error) return <div>Error loading products</div>;
 
   return (
-    <div className="w-full py-8">
+    <div className="w-full py-4 md:py-8">
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8"> 
-        <div className="flex gap-8">
-          {/* Left Sidebar - Filters */}
-          <div className="w-80 space-y-6">
-            <div className="bg-white rounded-md border border-gray-200 p-6">
+        {/* Mobile filter button */}
+        <div className="md:hidden mb-4">
+          <button
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="w-full py-2 px-4 bg-blue-900 text-white rounded-md flex items-center justify-between"
+          >
+            <span>{showMobileFilters ? 'Hide Filters' : 'Show Filters'}</span>
+            <ChevronDown className={`w-5 h-5 transition-transform ${showMobileFilters ? 'transform rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+          {/* Left Sidebar - Filters - Hidden on mobile unless toggled */}
+          <div className={`${showMobileFilters ? 'block' : 'hidden'} md:block w-full md:w-80 space-y-4 md:space-y-6`}>
+            <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Price</h3>
                 <ChevronDown className="w-5 h-5 text-gray-500" />
@@ -181,7 +183,7 @@ const Product = () => {
               </div>
             </div>
            
-            <div className="bg-white rounded-md border border-gray-200 p-6">
+            <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Weight or Sizes</h3>
                 <ChevronDown className="w-5 h-5 text-gray-500" />
@@ -214,24 +216,20 @@ const Product = () => {
 
           {/* Right - Products */}
           <div className="flex-1">
-            <div className="bg-white rounded-md border border-gray-200 p-4 mb-6">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-md border border-gray-200 p-4 mb-4 md:mb-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
-                  {currentProducts.length > 0 && (
-  <span
-    key={currentProducts[0].id}
-    className="inline-flex items-center   text-xl  font-medium text-black"
-  >
-    {currentProducts[0].category} Products
-  </span>
-)}
-                    
+                    {currentProducts.length > 0 && (
+                      <span className="inline-flex items-center text-xl font-medium text-black">
+                        {currentProducts[0].category} Products
+                      </span>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
+                <div className="flex flex-col md:flex-row items-start md:items-center w-full md:w-auto gap-3 md:gap-4">
+                  <div className="flex items-center space-x-2 w-full md:w-auto">
                     <button
                       onClick={() => setShowSearch(!showSearch)}
                       className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -244,39 +242,26 @@ const Product = () => {
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                        className="flex-1 min-w-36 md:min-w-[200px] px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         autoFocus
                       />
                     )}
                   </div>
                   
                   <select
-                    value={selectedRating}
-                    onChange={(e) => setSelectedRating(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Ratings</option>
-                    <option value="4+">4+ Stars</option>
-                    <option value="3+">3+ Stars</option>
-                    <option value="2+">2+ Stars</option>
-                  </select>
-                  
-                  <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="default">Sort by</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
-                    <option value="rating">Rating</option>
                     <option value="name">Name</option>
                   </select>
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4">
               {currentProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -297,7 +282,7 @@ const Product = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2">
+              <div className="flex items-center justify-center space-x-2 overflow-x-auto py-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
@@ -331,7 +316,7 @@ const Product = () => {
             )}
 
             {filteredAndSortedProducts.length === 0 && (
-              <div className="text-center py-12">
+              <div className="text-center py-8 md:py-12">
                 <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
                 <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
               </div>

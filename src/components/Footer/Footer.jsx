@@ -12,14 +12,46 @@ import {
   Twitter,
 } from "lucide-react";
 import { useState } from "react";
+import { useCompanyData } from "../../hooks/useCompanyData";
+import BASE_URL from "../../config/BaseUrl";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { encryptId } from "../../utils/Encyrption";
+const fetchCategories = async () => {
+  const response = await axios.get(`${BASE_URL}/api/web-fetch-category`);
+  return response.data;
+};
 
 const Footer = () => {
   const [openSections, setOpenSections] = useState({
     category: false,
-    company: false,
-    account: false,
+
+    quicklink: false,
     contact: false,
   });
+  const {
+    data: categoryData,
+    isLoading: isCategoryLoading,
+    error: categoryError,
+  } = useQuery({
+    queryKey: ["categoriesFooter"],
+    queryFn: fetchCategories,
+  });
+  const navigate = useNavigate();
+
+  const {
+    storeName,
+    storeDescription,
+    storeLogoImage,
+    supportEmail,
+    supportPhone,
+    storeAddress,
+    appStoreUrl,
+    googleStoreUrl,
+    isLoading,
+    error,
+  } = useCompanyData();
 
   const toggleSection = (section) => {
     setOpenSections((prev) => ({
@@ -27,6 +59,8 @@ const Footer = () => {
       [section]: !prev[section],
     }));
   };
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <>
@@ -40,7 +74,7 @@ const Footer = () => {
                   onClick={() => navigate("/")}
                 >
                   <img
-                    src="/logo-bg.png"
+                    src={storeLogoImage}
                     alt="Lohiya's Logo"
                     className="h-10 w-auto"
                   />
@@ -48,12 +82,12 @@ const Footer = () => {
               </div>
 
               <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                Grabit is the biggest market of grocery products. Get your daily
+                Lohiya is the biggest market of grocery products. Get your daily
                 needs from our store.
               </p>
 
               <div className="flex flex-col md:flex-row items-center  justify-start gap-2">
-                <div className="flex items-center bg-gray-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors w-full md:w-auto">
+                <div className="flex items-center bg-blue-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors w-full md:w-auto">
                   <PlaySquare className="mr-2" />
                   <div className="flex flex-col leading-tight">
                     <div className="text-[10px] uppercase">GET IT ON</div>
@@ -63,7 +97,7 @@ const Footer = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center bg-gray-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors w-full md:w-auto">
+                <div className="flex items-center bg-blue-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors w-full md:w-auto">
                   <Apple className="mr-2" />
                   <div className="flex flex-col leading-tight">
                     <div className="text-[10px] uppercase">DOWNLOAD ON</div>
@@ -95,66 +129,49 @@ const Footer = () => {
                   }`}
                 >
                   <ul className="space-y-3">
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Dried Fruit
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Cookies
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Foods
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Fresh Fruit
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Tuber Root
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Vegetables
-                      </a>
-                    </li>
+                    {categoryData?.data?.map((category, index) => (
+                      <li key={index}>
+                        <button
+
+
+
+
+
+
+
+                        onClick={() => 
+                        {
+                          const encryptedId = encryptId(category.id);
+                          
+                          navigate(`/product/${encodeURIComponent(encryptedId)}`)
+                        }
+                      
+                      
+                      
+                      }
+
+                      
+
+
+                          className="text-gray-600 cursor-pointer hover:text-blue-600 transition-colors"
+                        >
+                          {category.category_name}
+                        </button>
+                      </li>
+                    ))}
+                   
                   </ul>
                 </div>
               </div>
 
-              {/* Company */}
+              {/* Quick link */}
               <div className="border-b border-gray-200 pb-4">
                 <button
                   className="w-full flex justify-between items-center text-lg font-semibold text-gray-900"
-                  onClick={() => toggleSection("company")}
+                  onClick={() => toggleSection("quicklink")}
                 >
-                  Company
-                  {openSections.company ? (
+                  Quick link
+                  {openSections.quicklink ? (
                     <ChevronUp size={20} />
                   ) : (
                     <ChevronDown size={20} />
@@ -162,128 +179,49 @@ const Footer = () => {
                 </button>
                 <div
                   className={`mt-2 ${
-                    openSections.company ? "block" : "hidden"
+                    openSections.quicklink ? "block" : "hidden"
                   }`}
                 >
                   <ul className="space-y-3">
                     <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                      <button
+                      onClick={() => navigate("/products")}
+                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                       >
-                        About us
-                      </a>
+                        Products
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Delivery
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Legal Notice
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Terms & conditions
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Secure payment
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Contact us
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Account */}
-              <div className="border-b border-gray-200 pb-4">
-                <button
-                  className="w-full flex justify-between items-center text-lg font-semibold text-gray-900"
-                  onClick={() => toggleSection("account")}
-                >
-                  Account
-                  {openSections.account ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
-                </button>
-                <div
-                  className={`mt-2 ${
-                    openSections.account ? "block" : "hidden"
-                  }`}
-                >
-                  <ul className="space-y-3">
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Sign In
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                      <button
+                         onClick={() => navigate("/cart")}
+                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                       >
                         View Cart
-                      </a>
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                      <button
+                         onClick={() => navigate("/about")}
+                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                       >
-                        Return Policy
-                      </a>
+                        About us
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                      <button
+                           onClick={()=>navigate('/terms-condition')}
+                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                       >
-                        Become a Vendor
-                      </a>
+                        Terms & conditions
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                      <button
+                                onClick={()=>navigate('/contact')}
+                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                       >
-                        Affiliate Program
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        Payments
-                      </a>
+                        Contact us
+                      </button>
                     </li>
                   </ul>
                 </div>
@@ -311,28 +249,27 @@ const Footer = () => {
                     <div className="flex items-start space-x-3">
                       <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                       <div className="text-gray-600 text-sm">
-                        <div>2548 Broaddus Maple Court,</div>
-                        <div>Madisonville KY 4783, USA.</div>
+                        <div>{storeAddress}</div>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-3">
                       <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
                       <a
-                        href="tel:+009876543210"
+                        href={`tel:${supportPhone}`}
                         className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                       >
-                        +00 987654320
+                        {supportPhone}
                       </a>
                     </div>
 
                     <div className="flex items-center space-x-3">
                       <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
                       <a
-                        href="mailto:example@email.com"
+                        href={`mailto:${supportEmail}`}
                         className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                       >
-                        example@email.com
+                        {supportEmail}
                       </a>
                     </div>
 
@@ -368,169 +305,103 @@ const Footer = () => {
             </div>
 
             <div className="hidden w-full lg:grid lg:grid-cols-4 lg:w-[75%] gap-2">
-              <div>
-                <h3 className="text-xl    text-gray-900 mb-4">Category</h3>
+              <div className="lg:col-span-2">
+                <h3 className="text-xl text-gray-900 mb-4">Category</h3>
                 <hr className="mb-4 text-gray-200" />
-                <ul className="space-y-3">
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Dried Fruit
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Cookies
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Foods
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Fresh Fruit
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Tuber Root
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Vegetables
-                    </a>
-                  </li>
-                </ul>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left column */}
+                  <ul className="space-y-3">
+                    {categoryData?.data?.slice(0, 5).map((category, index) => (
+                      <li key={index}>
+                        <button
+                        onClick={() => 
+                          {
+                            const encryptedId = encryptId(category.id);
+                            
+                            navigate(`/product/${encodeURIComponent(encryptedId)}`)
+                          }
+                        
+                        
+                        
+                        }
+                          className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        >
+                          {category.category_name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Right column */}
+                  <ul className="space-y-3">
+                    {categoryData?.data?.slice(5, 10).map((category, index) => (
+                      <li key={index}>
+                        <button
+                        onClick={() => 
+                          {
+                            const encryptedId = encryptId(category.id);
+                            
+                            navigate(`/product/${encodeURIComponent(encryptedId)}`)
+                          }
+                        
+                        
+                        
+                        }
+                          className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        >
+                          {category.category_name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
-              {/* Company */}
+              {/* quicklink */}
               <div>
-                <h3 className="text-xl text-gray-900 mb-4">Company</h3>
+                <h3 className="text-xl  text-gray-900 mb-4">Quick Link</h3>
                 <hr className="mb-4 text-gray-200" />
                 <ul className="space-y-3">
                   <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                    <button
+                      onClick={() => navigate("/products")}
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
-                      About us
-                    </a>
+                      Products
+                    </button>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Delivery
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Legal Notice
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Terms & conditions
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Secure payment
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/contact"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Contact us
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Account */}
-              <div>
-                <h3 className="text-xl  text-gray-900 mb-4">Account</h3>
-                <hr className="mb-4 text-gray-200" />
-                <ul className="space-y-3">
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Sign In
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                    <button
+                       onClick={() => navigate("/cart")}
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                       View Cart
-                    </a>
+                    </button>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                    <button
+                         onClick={() => navigate("/about")}
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
-                      Return Policy
-                    </a>
+                      About us
+                    </button>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                    <button
+                      onClick={() => navigate("/terms-condition")}
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
-                      Become a Vendor
-                    </a>
+                      Terms & conditions
+                    </button>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                    <button
+                      onClick={() => navigate("/contact")}
+                  
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
-                      Affiliate Program
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      Payments
-                    </a>
+                      Contact us
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -543,28 +414,27 @@ const Footer = () => {
                   <div className="flex items-start space-x-3">
                     <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-gray-600 text-sm">
-                      <div>2548 Broaddus Maple Court,</div>
-                      <div>Madisonville KY 4783, USA.</div>
+                      <div>{storeAddress}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-3">
                     <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
                     <a
-                      href="tel:+009876543210"
+                      href={`tel:${supportPhone}`}
                       className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                     >
-                      +00 987654320
+                      {supportPhone}
                     </a>
                   </div>
 
                   <div className="flex items-center space-x-3">
                     <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
                     <a
-                      href="mailto:example@email.com"
+                      href={`mailto:${supportEmail}`}
                       className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                     >
-                      example@email.com
+                      {supportEmail}
                     </a>
                   </div>
 
@@ -604,46 +474,11 @@ const Footer = () => {
       </footer>
       <div className=" bg-gray-100 border-t border-gray-200 pt-2 pb-2">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
-            <div className="text-gray-600 text-sm text-center lg:text-left">
-              Copyright © <span className="text-blue-600">Lohiya's</span> all
-              rights reserved. Powered by{" "}
-              <span className="text-blue-600">Ag-Solutions</span>.
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                {/* Visa */}
-                <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">VISA</span>
-                </div>
-
-                {/* Mastercard */}
-                <div className="w-12 h-8 bg-red-500 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">MC</span>
-                </div>
-
-                {/* PayPal */}
-                <div className="w-12 h-8 bg-blue-500 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">PP</span>
-                </div>
-
-                {/* Skrill */}
-                <div className="w-12 h-8 bg-purple-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SK</span>
-                </div>
-
-                {/* Maestro */}
-                <div className="w-12 h-8 bg-blue-700 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">MA</span>
-                </div>
-
-                {/* American Express */}
-                <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">AE</span>
-                </div>
-              </div>
-            </div>
+          <div className="text-gray-600 text-sm text-center ">
+            Copyright © <span className="text-blue-600">Lohiya's</span> all
+            rights reserved. Powered by{" "}
+            <a href="https://ag-solutions.in/"  target="_blank"
+    rel="noreferrer" className="text-blue-600">Ag-Solutions</a>.
           </div>
         </div>
       </div>

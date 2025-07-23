@@ -3,7 +3,8 @@ import axios from "axios";
 import { Earth, Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import BASE_URL from "../../config/BaseUrl";
-import useNotification from "../../hooks/useNotification";
+import { toast } from "sonner";
+
 const fetchCompanyData = async () => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-company`);
   return response.data;
@@ -11,7 +12,7 @@ const fetchCompanyData = async () => {
 
 const Contact = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { showNotification } = useNotification();
+
   const [loader, setLoader] = useState(false);
   const [contactData, setContactData] = useState({
     fullname: "",
@@ -115,7 +116,7 @@ const Contact = () => {
         contactData
       );
       if (response.data.code == 201) {
-        showNotification(
+        toast.success(
           response.data.message || "Sucessfully submited",
           "success"
         );
@@ -126,10 +127,10 @@ const Contact = () => {
           description: "",
         });
       } else {
-        showNotification(response.data.message || "Failed to Submit", "error");
+        toast.error(response.data.message || "Failed to Submit", "error");
       }
     } catch (err) {
-      showNotification(err || "Failed to Submit try again later", "error");
+      toast.error(err || "Failed to Submit try again later", "error");
       setLoader(false);
     } finally {
       setLoader(false);
