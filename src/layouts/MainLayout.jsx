@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../components/Navbar/Navbar';
 import Footer from '../components/Footer/Footer';
+import { AppBottombar } from '../components/Navbar/AppBottombar';
 
 const MainLayout = ({ children }) => {
   return (
@@ -18,7 +19,9 @@ const MainLayout = ({ children }) => {
       </main>
 
       <Footer />
+      <AppBottombar/>
     </div>
+   
   );
 };
 
