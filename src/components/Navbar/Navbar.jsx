@@ -487,33 +487,8 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-
-              <motion.div
-                className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors duration-300 "
-                variants={cartVariants}
-                whileHover={{
-                  scale: 1.1,
-                  rotate: 5,
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ShoppingCart size={20} onClick={() => navigate("/cart")} />
-                <div
-                  onClick={() => navigate("/cart")}
-                  className=" flex  flex-col text-sm"
-                >
-                  <span className="text-xs">Cart</span>
-                  <span className="font-medium">
-                    {useSelector((state) => state.cart.items).length}-
-                    {useSelector((state) => state.cart.items).length > 1
-                      ? "ITEMS"
-                      : "ITEM"}
-                  </span>
-                </div>
-              </motion.div>
-
-              {/* Mobile menu button */}
-              <div className="hidden  md:block lg:hidden ">
+                 {/* Mobile menu button */}
+                 <div className="hidden  md:block lg:hidden ">
                 <motion.button
                   onClick={() => setMobileMenuOpen((prev) => !prev)}
                   className="text-gray-600 hover:text-blue-600 focus:outline-none transition-colors duration-300"
@@ -546,6 +521,32 @@ const Navbar = () => {
                   </AnimatePresence>
                 </motion.button>
               </div>
+
+              <motion.div
+                className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors duration-300 "
+                variants={cartVariants}
+                whileHover={{
+                  scale: 1.1,
+                  rotate: 5,
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ShoppingCart size={20} onClick={() => navigate("/cart")} />
+                <div
+                  onClick={() => navigate("/cart")}
+                  className=" flex  flex-col text-sm"
+                >
+                  <span className="text-xs">Cart</span>
+                  <span className="font-medium">
+                    {useSelector((state) => state.cart.items).length}-
+                    {useSelector((state) => state.cart.items).length > 1
+                      ? "ITEMS"
+                      : "ITEM"}
+                  </span>
+                </div>
+              </motion.div>
+
+           
             </div>
           </div>
         </div>

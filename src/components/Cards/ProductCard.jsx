@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, StarHalf, ShoppingCart, Eye } from 'lucide-react';
+import { ShoppingCart, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { addToCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
@@ -17,11 +17,11 @@ const ProductCard = ({
   rating = 0, 
   weight,
   onSale = false,
-  isNew = false ,
+  isNew = false,
   onViewProduct
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleViewProduct = (e) => {
@@ -31,6 +31,7 @@ const ProductCard = ({
       onViewProduct();
     }
   };
+
   const handleAddToCart = (e) => {
     e.stopPropagation(); 
     e.preventDefault();
@@ -47,128 +48,99 @@ const ProductCard = ({
     dispatch(addToCart(cartItem));
     toast.success(`${title} added to cart`);
   };
+
+  const discountPercent = Math.round(((price - originalPrice) / price) * 100);
+
+
   return (
     <div 
-    onClick={() => 
-      
-      {
+      onClick={() => {
         const encryptedId = encryptId(id);
-
-      navigate(`/product-details/${encodeURIComponent(encryptedId)}`)
-  
-    }
-  
-  }
-
-
-
-
-
-      className="bg-white rounded-md border border-gray-200  hover:shadow-md transition-all duration-300 overflow-hidden group relative"
+        navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
+      }}
+      className="bg-white rounded-md border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden group relative h-full flex flex-col"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-     
       {(onSale || isNew) && (
-        <div className={`absolute top-2 left-2 z-10 px-2 py-1 rounded text-xs font-semibold text-white ${
-          onSale ? 'bg-red-400' : 'bg-teal-500'
+        <div className={`absolute top-2 left-2 z-10 px-2 py-1 rounded text-xs font-semibold  ${
+          onSale ? 'bg-green-400 text-black' : ''
         }`}>
-          {onSale ? 'SALE' : 'NEW'}
+          {onSale ? `${discountPercent}% OFF` : ''}
         </div>
       )}
+    
+
       
-     
-      <div className="relative overflow-hidden bg-gray-50 aspect-square cursor-pointer">
+      <div className="relative overflow-hidden bg-gray-50 aspect-square cursor-pointer flex-shrink-0">
         <img 
           src={isHovered && hoverImage ? hoverImage : image} 
           alt={title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         
-   
-{isHovered && (
-  <div className="absolute bottom-0 left-0 right-0  bg-opacity-90 bg-transparent flex items-center justify-center gap-4 p-2 transition-opacity duration-300">
-    {/* <button className="p-2 rounded-lg bg-white border border-gray-200 cursor-pointer hover:bg-blue-300 transition-colors duration-200">
-      <ShoppingCart className="w-4 h-4 text-gray-900" />
-    </button> */}
-    <button 
-     onClick={handleViewProduct}
-    className="p-2 rounded-lg  bg-white border border-gray-200 cursor-pointer hover:bg-blue-300 transition-colors duration-200">
-      <Eye className="w-4 h-4 text-gray-900" />
-    </button>
-  </div>
-)}
+     
       </div>
       
-   
-      <div className="p-4 space-y-2 border-t border-gray-200">
-     
-        <p className="text-xs text-gray-500 uppercase tracking-wide">
-          {category}
-        </p>
-        
-      
-        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-tight">
-          {title}
-        </h3>
-        
-       
-        <div className="flex items-center flex-row justify-between gap-1">
-        
-          {weight && (
-            <span className="text-xs text-gray-500 font-medium">
-              {weight}
+    
+
+<div className="p-4 flex flex-col flex-grow border-t border-gray-200">
+ 
+  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+    {category}
+  </p>
+  
+
+  <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-tight mb-2">
+    {title}
+  </h3>
+  
+
+  <div className="flex flex-wrap justify-between items-center mt-auto mb-3 gap-2">
+    {weight && (
+      <span className="text-xs text-gray-500 font-medium flex-shrink-0">
+        {weight}
+      </span>
+    )}
+    <div className="flex-shrink-0">
+      {price === originalPrice ? (
+        <span className="text-lg font-bold text-gray-900">
+          &#8377;{price}
+        </span>
+      ) : (
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm sm:text-lg font-bold text-gray-900">
+            &#8377;{originalPrice}
+          </span>
+          {price && (
+            <span className="text-xs sm:text-sm text-gray-500 line-through">
+              &#8377;{price}
             </span>
           )}
-     
-            <button 
-             onClick={handleAddToCart}
-            className="p-2 rounded-lg  border border-gray-200 bg-blue-200 cursor-pointer hover:bg-blue-600 transition-colors duration-200">
-            <ShoppingCart className="w-4 h-4 text-gray-900" />
-          </button>
-  
         </div>
-        
-      
-        <div className="flex items-center justify-between">
+      )}
+    </div>
+  </div>
 
 
-        {(price == originalPrice) ? (
+  <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-3">
+    <button 
+      onClick={handleViewProduct}
+      className="flex items-center cursor-pointer justify-center gap-1 p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 transition-colors duration-200 w-full"
+    >
+      <Eye className="w-4 h-4 min-w-[16px] text-gray-900" />
+      <span className=" hidden sm:block text-xs font-medium truncate">View</span>
+    </button>
+    <button 
+      onClick={handleAddToCart}
+      className="flex items-center cursor-pointer justify-center gap-1 p-2 rounded-lg border border-gray-200 bg-blue-400 hover:bg-blue-600 hover:text-white transition-colors duration-200 w-full"
+    >
+      <ShoppingCart className="w-4 h-4 min-w-[16px]  hover:text-white" />
+      <span className="text-xs hidden sm:block  font-medium truncate">Cart</span>
+    </button>
+  </div>
+</div>
 
-<>
-<div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-gray-900">
-            &#8377;{price}
-            </span>
-           
-          </div>
-
-</>
-):(
-
-<>
-<div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-gray-900">
-            &#8377;{originalPrice}
-            </span>
-            {price && (
-              <span className="text-sm text-gray-500 line-through">
-                &#8377;{price}
-              </span>
-            )}
-          </div>
-
-</>
-
-)}
-        
-
-
-
-
-          
-        </div>
-      </div>
     </div>
   );
 };
