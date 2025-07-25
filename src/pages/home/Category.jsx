@@ -5,6 +5,9 @@ import axios from 'axios';
 import CategoryCard from '../../components/Cards/CategoryCard';
 import BASE_URL from '../../config/BaseUrl';
 import CategorySkeletonHomeLoading from '../../components/skeletons/CategorySkeletonHomeLoading';
+import Carousel from '../../components/Carousel/Carousel';
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
 const fetchCategories = async () => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-category`);
@@ -12,6 +15,7 @@ const fetchCategories = async () => {
 };
 
 const Category = () => {
+  const navigate = useNavigate()
   const { data, isLoading, error } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories
@@ -41,12 +45,25 @@ const Category = () => {
   return (
     <div className="w-full py-8">
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-medium text-gray-900">Shop by Categories</h2>
-          <p className="text-gray-600 font-mono mt-2">Browse through our wide variety of products</p>
-        </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-medium text-gray-900">Shop by Categories</h2>
+            <p className="text-gray-600 font mt-2">Browse through our wide variety of products</p>
+          </div>
+          <div>
+  <button
+    onClick={() => navigate('/categories')}
+    className="flex items-center gap-1 px-3 py-1.5 bg-[#f8f8fb] text-blue-900 cursor-pointer text-sm rounded-md hover:bg-[#e2e8f0] transition-all duration-200"
+  >
+    View All
+    <ChevronRight className="w-4 h-4" />
+  </button>
+</div>
+        </div>
+        {/* <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"> */}
+           <Carousel itemsToShow={6}>
           {data?.data?.map((category, index) => {
      
             const colorIndex = index % gradientColors.length;
@@ -62,7 +79,9 @@ const Category = () => {
               />
             );
           })}
-        </div>
+          </Carousel>
+          
+        {/* </div> */}
       </div>
     </div>
   );

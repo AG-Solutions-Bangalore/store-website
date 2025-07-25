@@ -8,10 +8,12 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
+import { encryptId } from '../../utils/Encyrption';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
   const [activeSlide, setActiveSlide] = useState(0);
-
+  const navigate = useNavigate()
   return (
     <div className="hero-section relative w-full bg-white overflow-hidden">
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,12 +50,18 @@ const HeroSection = () => {
               <div className={`absolute inset-0 flex items-center transition-opacity duration-1000 ${activeSlide === 0 ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="max-w-2xl text-white pl-8 lg:pl-16 py-12">
                   <p className={`text-lg lg:text-xl text-blue-400 font-medium mb-4 transition-all duration-700 delay-100 ${activeSlide === 0 ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
-                    Starting at $ 29.99
+                    Starting at  &#8377; 69.99
                   </p>
-                  <h1 className={`text-3xl lg:text-5xl font-medium text-gray-600 mb-8 leading-tight transition-all duration-700 delay-200 ${activeSlide === 0 ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
-                    Explore fresh &  <br/> juicy fruits
+                  <h1 className={`text-3xl lg:text-5xl font-medium text-gray-600 mb-8 leading-tight transition-all duration-700 delay-200 ${activeSlide === 0 ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}> 
+                    Explore Pulses &  <br/> Lentils
                   </h1>
-                  <button className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-lg font-medium transition-all duration-300 flex items-center gap-2 ${activeSlide === 0 ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'} delay-300`}>
+                  <button
+                  onClick={() => {
+                                
+                                  const encryptedId = encryptId(3);
+                                  navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                                }}
+                  className={`bg-blue-900 hover:bg-blue-700 cursor-pointer text-white px-4 py-2 rounded-lg text-lg font-medium transition-all duration-300 flex items-center gap-2 ${activeSlide === 0 ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'} delay-300`}>
                     Shop Now
                     <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">»</span>
                   </button>
@@ -76,10 +84,17 @@ const HeroSection = () => {
                     Premium Quality
                   </p>
                   <h1 className={`text-3xl lg:text-5xl font-medium text-gray-600 mb-8 leading-tight transition-all duration-700 delay-200 ${activeSlide === 1 ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-                    Organic & healthy <br/> vegetables
+                    Organic & healthy <br/> Flours 
                   </h1>
                   <div className="flex justify-end">
-                    <button className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-lg font-medium transition-all duration-300 flex items-center gap-2 ${activeSlide === 1 ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} delay-300`}>
+                    <button
+                    
+                    onClick={() => {
+                                  
+                                    const encryptedId = encryptId(2);
+                                    navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                                  }}
+                    className={`bg-blue-900 hover:bg-blue-700 cursor-pointer text-white px-4 py-2 rounded-lg text-lg font-medium transition-all duration-300 flex items-center gap-2 ${activeSlide === 1 ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} delay-300`}>
                       Shop Now
                       <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">»</span>
                     </button>
@@ -92,7 +107,7 @@ const HeroSection = () => {
       </div>
 
       {/* Custom CSS for Swiper */}
-      <style jsx>{`
+      <style>{`
         .swiper-pagination-bullet {
           width: 12px;
           height: 12px;
