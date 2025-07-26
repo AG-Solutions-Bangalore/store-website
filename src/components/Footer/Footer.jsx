@@ -109,201 +109,143 @@ const Footer = () => {
               </div>
             </div>
 
-            <div className="w-full lg:hidden space-y-4  ">
-              {/* Category */}
-              <div className="border-b border-gray-200 pb-4">
-                <button
-                  className="w-full flex justify-between items-center text-lg font-semibold text-gray-900"
-                  onClick={() => toggleSection("category")}
-                >
-                  Category
-                  {openSections.category ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
-                </button>
-                <div
-                  className={`mt-2 ${
-                    openSections.category ? "block" : "hidden"
-                  }`}
-                >
-                  <ul className="space-y-3">
-                    {categoryData?.data?.map((category, index) => (
-                      <li key={index}>
+           
+  {/* Mobile Accordions */}
+  <div className="w-full lg:hidden space-y-4">
+                  {/* Category Accordion */}
+                  <div className="border-b border-gray-200 pb-4">
+                    <button
+                      className="w-full flex justify-between items-center text-base font-medium text-gray-900"
+                      onClick={() => toggleSection("category")}
+                    >
+                      <span>Categories</span>
+                      {openSections.category ? (
+                        <ChevronUp size={20} />
+                      ) : (
+                        <ChevronDown size={20} />
+                      )}
+                    </button>
+                    <div
+                      className={`mt-3 space-y-2 ${
+                        openSections.category ? "block" : "hidden"
+                      }`}
+                    >
+                      {categoryData?.data?.map((category, index) => (
                         <button
-
-
-
-
-
-
-
-                        onClick={() => 
-                        {
-                          const encryptedId = encryptId(category.id);
-                          
-                          navigate(`/product/${encodeURIComponent(encryptedId)}`)
-                        }
-                      
-                      
-                      
-                      }
-
-                      
-
-
-                          className="text-gray-600 cursor-pointer hover:text-blue-600 transition-colors"
+                          key={index}
+                          onClick={() => {
+                            const encryptedId = encryptId(category.id);
+                            navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                          }}
+                          className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                         >
                           {category.category_name}
                         </button>
-                      </li>
-                    ))}
-                   
-                  </ul>
-                </div>
-              </div>
-
-              {/* Quick link */}
-              <div className="border-b border-gray-200 pb-4">
-                <button
-                  className="w-full flex justify-between items-center text-lg font-semibold text-gray-900"
-                  onClick={() => toggleSection("quicklink")}
-                >
-                  Quick link
-                  {openSections.quicklink ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
-                </button>
-                <div
-                  className={`mt-2 ${
-                    openSections.quicklink ? "block" : "hidden"
-                  }`}
-                >
-                  <ul className="space-y-3">
-                    <li>
+                      ))}
+                    </div>
+                  </div>
+  
+                  {/* Quick Links Accordion */}
+                  <div className="border-b border-gray-200 pb-4">
+                    <button
+                      className="w-full flex justify-between items-center text-base font-medium text-gray-900"
+                      onClick={() => toggleSection("quicklink")}
+                    >
+                      <span>Quick Links</span>
+                      {openSections.quicklink ? (
+                        <ChevronUp size={20} />
+                      ) : (
+                        <ChevronDown size={20} />
+                      )}
+                    </button>
+                    <div
+                      className={`mt-3 space-y-2 ${
+                        openSections.quicklink ? "block" : "hidden"
+                      }`}
+                    >
                       <button
-                      onClick={() => navigate("/products")}
-                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        onClick={() => navigate("/products")}
+                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                       >
                         Products
                       </button>
-                    </li>
-                    <li>
                       <button
-                         onClick={() => navigate("/cart")}
-                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        onClick={() => navigate("/cart")}
+                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                       >
                         View Cart
                       </button>
-                    </li>
-                    <li>
                       <button
-                         onClick={() => navigate("/about")}
-                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        onClick={() => navigate("/about")}
+                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                       >
                         About us
                       </button>
-                    </li>
-                    <li>
                       <button
-                           onClick={()=>navigate('/terms-condition')}
-                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        onClick={() => navigate('/terms-condition')}
+                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                       >
-                        Terms & conditions
+                        Terms & Conditions
                       </button>
-                    </li>
-                    <li>
                       <button
-                                onClick={()=>navigate('/contact')}
-                        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        onClick={() => navigate('/contact')}
+                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                       >
                         Contact us
                       </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Contact */}
-              <div className="border-b border-gray-200 pb-4">
-                <button
-                  className="w-full flex justify-between items-center text-lg font-semibold text-gray-900"
-                  onClick={() => toggleSection("contact")}
-                >
-                  Contact
-                  {openSections.contact ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
-                </button>
-                <div
-                  className={`mt-2 ${
-                    openSections.contact ? "block" : "hidden"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-gray-600 text-sm">
-                        <div>{storeAddress}</div>
+                    </div>
+                  </div>
+  
+                  {/* Contact Accordion */}
+                  <div className="border-b border-gray-200 pb-4">
+                    <button
+                      className="w-full flex justify-between items-center text-base font-medium text-gray-900"
+                      onClick={() => toggleSection("contact")}
+                    >
+                      <span>Contact</span>
+                      {openSections.contact ? (
+                        <ChevronUp size={20} />
+                      ) : (
+                        <ChevronDown size={20} />
+                      )}
+                    </button>
+                    <div
+                      className={`mt-3 space-y-3 ${
+                        openSections.contact ? "block" : "hidden"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <MapPin className="flex-shrink-0 h-5 w-5 text-blue-600 mt-0.5" />
+                        <span className="text-gray-600 text-sm">{storeAddress}</span>
                       </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                      <a
-                        href={`tel:${supportPhone}`}
-                        className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
+                      <a 
+                        href={`tel:${supportPhone}`} 
+                        className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                       >
-                        {supportPhone}
+                        <Phone className="flex-shrink-0 h-5 w-5 text-blue-600" />
+                        <span className="text-sm">{supportPhone}</span>
                       </a>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                      <a
-                        href={`mailto:${supportEmail}`}
-                        className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
+                      <a 
+                        href={`mailto:${supportEmail}`} 
+                        className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                       >
-                        {supportEmail}
+                        <Mail className="flex-shrink-0 h-5 w-5 text-blue-600" />
+                        <span className="text-sm">{supportEmail}</span>
                       </a>
-                    </div>
-
-                    <div className="flex space-x-3 pt-2">
-                      <a
-                        href="#"
-                        className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
-                      >
-                        <Facebook size={16} />
-                      </a>
-                      <a
-                        href="#"
-                        className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
-                      >
-                        <Twitter size={16} />
-                      </a>
-                      <a
-                        href="#"
-                        className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
-                      >
-                        <Linkedin size={16} />
-                      </a>
-                      <a
-                        href="#"
-                        className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
-                      >
-                        <Instagram size={16} />
-                      </a>
+                      <div className="flex gap-3 pt-2">
+                        {[Facebook, Twitter, Linkedin, Instagram].map((Icon, index) => (
+                          <a
+                            key={index}
+                            href="#"
+                            className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-colors"
+                          >
+                            <Icon size={16} />
+                          </a>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
             <div className="hidden w-full lg:grid lg:grid-cols-4 lg:w-[75%] gap-2">
               <div className="lg:col-span-2">
                 <h3 className="text-xl text-gray-900 mb-4">Category</h3>
@@ -487,3 +429,6 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
+//sajid 

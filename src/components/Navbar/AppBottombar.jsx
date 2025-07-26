@@ -230,26 +230,36 @@ export function AppBottombar() {
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
-                      {React.createElement(activeMenu.icon, { className: "h-4 w-4 text-blue-600" })}
-                    </div>
-                    <h3 className="font-semibold text-gray-900">
-                      {activeMenu.title}
-                    </h3>
-                  </div>
-                  <motion.button
-                    onClick={() => setActiveDropdown(null)}
-                    className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center"
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <X className="h-3 w-3 text-gray-600" />
-                  </motion.button>
-                </div>
-              </div>
+              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+              {React.createElement(activeMenu.icon, { className: "h-4 w-4 text-blue-600" })}
+            </div>
+            <h3 className="font-semibold text-gray-900">
+              {activeMenu.title}
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                navigate('/categories');
+                setActiveDropdown(null);
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 bg-[#f8f8fb] text-blue-900 cursor-pointer text-sm rounded-md hover:bg-[#e2e8f0] transition-all duration-200"
+            >
+              View All
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <motion.button
+              onClick={() => setActiveDropdown(null)}
+              className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center"
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <X className="h-3 w-3 text-gray-600" />
+            </motion.button>
+          </div>
+        </div>
               
            
               <div className="py-1 max-h-[60vh] overflow-y-auto">

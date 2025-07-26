@@ -58,7 +58,14 @@ const ProductAll = () => {
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
         isNew: false,
-        productData: product
+        productData: {
+          ...product,
+         
+          allImages: product.subs.map(sub => ({
+            url: `${productImageUrl}${sub.product_images}`,
+            is_default: sub.is_default
+          }))
+        }
       };
     });
   };
@@ -146,14 +153,98 @@ const ProductAll = () => {
     setCurrentPage(1);
   }, [selectedCategories, selectedWeights, priceRange, searchTerm, selectedRating, sortBy]);
 
+  const renderPagination = () => {
+    const maxVisiblePages = 5;
+    let startPage, endPage;
+    
+    if (totalPages <= maxVisiblePages) {
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
+      const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
+      
+      if (currentPage <= maxPagesBeforeCurrent) {
+        startPage = 1;
+        endPage = maxVisiblePages;
+      } else if (currentPage + maxPagesAfterCurrent >= totalPages) {
+        startPage = totalPages - maxVisiblePages + 1;
+        endPage = totalPages;
+      } else {
+        startPage = currentPage - maxPagesBeforeCurrent;
+        endPage = currentPage + maxPagesAfterCurrent;
+      }
+    }
+
+    return (
+      <div className="flex items-center justify-center space-x-1 py-4">
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => setCurrentPage(1)}
+              className={`px-3 py-1 rounded-md text-sm ${
+                1 === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+              }`}
+            >
+              1
+            </button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(page => (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`px-3 py-1 rounded-md text-sm ${
+              page === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              className={`px-3 py-1 rounded-md text-sm ${
+                totalPages === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+              }`}
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+        
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  };
+
   if (isLoading) return <SkeletonProductAllLoading/>;
   if (error) return <div>Error loading products</div>;
 
   return (
     <div className="w-full py-4 md:py-8">
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Mobile header with filter and search controls */}
-        <div className="md:hidden mb-4 flex items-center justify-between">
+        {/* Mobile header with filter and search controls - shown on md and below */}
+        <div className="lg:hidden mb-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="inline-flex items-center text-xl font-medium text-black">
               All Products
@@ -163,9 +254,9 @@ const ProductAll = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              className={`p-2 rounded-md transition-colors ${showSearch ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
             >
-              <Search className="w-4 h-4 text-gray-600" />
+              <Search className="w-4 h-4" />
             </button>
             <button
               onClick={() => setShowMobileFilters(true)}
@@ -176,22 +267,34 @@ const ProductAll = () => {
           </div>
         </div>
 
+        {/* Mobile search - shown on md and below */}
         {showSearch && (
-          <div className="md:hidden mb-4">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              autoFocus
-            />
+          <div className="lg:hidden mb-4 relative">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                autoFocus
+              />
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-          {/* Left Sidebar - Filters - Hidden on mobile */}
-          <div className="hidden md:block w-full md:w-80 space-y-4 md:space-y-6">
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
+          {/* Left Sidebar - Filters - Hidden on mobile and medium screens */}
+          <div className="hidden lg:block w-full lg:w-80 space-y-4 md:space-y-6">
             {/* Category Filter */}
             <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
@@ -298,80 +401,59 @@ const ProductAll = () => {
 
           {/* Right - Products */}
           <div className="flex-1">
-            {/* Desktop header */}
-            <div className="hidden md:block bg-white rounded-md border border-gray-200 p-4 mb-4 md:mb-6">
+            {/* Desktop header - shown only on lg and above */}
+            <div className="hidden lg:block bg-white rounded-md border border-gray-200 p-4 mb-4 md:mb-6">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center flex-wrap gap-2">
-                  {/* Show selected categories */}
-                  {selectedCategories.slice(0, 3).map((category, index) => (
-                    <span
-                      key={`category-${index}`}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                    >
-                      {category}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedCategories(prev => prev.filter(c => c !== category));
-                        }}
-                        className="ml-1 hover:text-blue-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                  
-                  {/* Show selected weights */}
-                  {selectedWeights.slice(0, 3).map((weight, index) => (
-                    <span
-                      key={`weight-${index}`}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                    >
-                      {weight}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedWeights(prev => prev.filter(w => w !== weight));
-                        }}
-                        className="ml-1 hover:text-blue-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-
-                  {/* Clear All button */}
-                  {(selectedCategories.length > 0 || selectedWeights.length > 0) && (
-                    <button
-                      onClick={() => {
-                        setSelectedCategories([]);
-                        setSelectedWeights([]);
-                      }}
-                      className="px-3 py-1 text-xs text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      Clear All
-                    </button>
-                  )}
+                 All Products
                 </div>
                 
                 <div className="flex flex-col md:flex-row items-start md:items-center w-full md:w-auto gap-3 md:gap-4">
-                  <div className="flex items-center space-x-2 w-full md:w-auto">
+                  <div className="relative flex items-center w-full md:w-auto">
                     <button
-                      onClick={() => setShowSearch(!showSearch)}
-                      className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      onClick={() => {
+                        setShowSearch(true);
+                        setTimeout(() => document.getElementById('search-input')?.focus(), 0);
+                      }}
+                      className={`p-2 rounded-md transition-colors ${showSearch ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                      <Search className="w-4 h-4 text-gray-600" />
+                      <Search className="w-4 h-4" />
                     </button>
-                    {showSearch && (
-                      <input
-                        type="text"
-                        placeholder="Search products..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex-1 min-w-36 md:min-w-[200px] px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        autoFocus
-                      />
-                    )}
+                    
+                    <AnimatePresence>
+                      {showSearch && (
+                        <motion.div
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex items-center ml-2">
+                            <input
+                              id="search-input"
+                              type="text"
+                              placeholder="Search by product..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="w-full min-w-[200px] px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                              autoFocus
+                            />
+                            {searchTerm && (
+                              <button
+                                onClick={() => {
+                                  setSearchTerm('');
+                                  document.getElementById('search-input')?.focus();
+                                }}
+                                className="ml-2 p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                   
                   <select
@@ -388,8 +470,8 @@ const ProductAll = () => {
               </div>
             </div>
 
-            {/* Mobile sort dropdown */}
-            <div className="md:hidden mb-4">
+            {/* Sort dropdown - shown on md and below */}
+            <div className="lg:hidden mb-4">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -422,51 +504,19 @@ const ProductAll = () => {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2 overflow-x-auto py-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      currentPage === index + 1
-                        ? 'bg-blue-600 text-white'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
             {filteredAndSortedProducts.length === 0 && (
               <div className="text-center py-8 md:py-12">
                 <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
                 <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
               </div>
             )}
+
+            {totalPages > 1 && renderPagination()}
           </div>
         </div>
       </div>
 
-      {/* Mobile Filter Modal */}
+      {/* Mobile Filter Modal - shown on md and below */}
       <AnimatePresence>
         {showMobileFilters && (
           <motion.div 
