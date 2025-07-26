@@ -95,7 +95,14 @@ const NewArrival = () => {
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
         isNew: true,
-        productData: product
+        productData: {
+          ...product,
+         
+          allImages: product.subs.map(sub => ({
+            url: `${productImageUrl}${sub.product_images}`,
+            is_default: sub.is_default
+          }))
+        }
       };
     });
   };

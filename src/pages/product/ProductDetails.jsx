@@ -89,13 +89,19 @@ const ProductDetails = () => {
       category: product.category_names,
       price: product.product_mrp,
       originalPrice: product.product_spl_offer_price > 0 
-      ? product.product_spl_offer_price 
-      : product.product_selling_price,
+        ? product.product_spl_offer_price 
+        : product.product_selling_price,
       rating: 0,
       weight: `${product.product_unit_value}${product.unit_name}`,
       onSale: product.product_spl_offer_price > 0,
       isNew: true,
-      productData: product
+      productData: {
+        ...product,
+        allImages: product.subs.map(sub => ({
+          url: `${productImageUrl}${sub.product_images}`,
+          is_default: sub.is_default
+        }))
+      }
     };
   };
 
@@ -118,20 +124,26 @@ const ProductDetails = () => {
         category: product.category_names,
         price: product.product_mrp,
         originalPrice: product.product_spl_offer_price > 0 
-        ? product.product_spl_offer_price 
-        : product.product_selling_price,
+          ? product.product_spl_offer_price 
+          : product.product_selling_price,
         rating: 0,
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
         isNew: true,
-        productData: product
+        productData: {
+          ...product,
+          allImages: product.subs.map(sub => ({
+            url: `${productImageUrl}${sub.product_images}`,
+            is_default: sub.is_default
+          }))
+        }
       };
-    }).filter(product => product.id !== parseInt(id)); 
+    }).filter(product => product.id !== parseInt(decryptedId)); 
   };
 
   const product = transformProductData(productData);
   const relatedProducts = transformRelatedProducts(relatedProductsData);
-  const productImages = product ? [product.image, product.hoverImage].filter(Boolean) : [];
+  const productImages = product ? product.productData.allImages.map(img => img.url) : [];
 
   const weightOptions = product ? [product.weight] : ['250g', '500g', '1kg', '2kg'];
 
@@ -187,10 +199,10 @@ const ProductDetails = () => {
       setQuantity(prev => prev - 1);
     }
   };
-
-  if (isLoading) return (
-    <ProductDetailsSkeleton/>
-  );
+  const discountPercent = product?.price && product?.originalPrice
+  ? Math.round(((product.price - product.originalPrice) / product.price) * 100)
+  : 0;
+  if (isLoading) return <ProductDetailsSkeleton/>;
   
   if (error) return (
     <div className="flex justify-center items-center h-screen text-red-500">
@@ -228,15 +240,11 @@ const ProductDetails = () => {
                 
                 {/* Sale/New badge */}
                 {product.onSale && (
-                  <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded text-sm font-medium z-10">
-                    Sale
-                  </div>
+                 <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded text-xs font-semibold bg-green-400 text-black">
+                 {discountPercent}% OFF
+             </div>
                 )}
-                {product.isNew && (
-                  <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded text-sm font-medium z-10">
-                    New
-                  </div>
-                )}
+             
                 
                 {/* Zoom Effect - Desktop only */}
                 {showZoom && window.innerWidth > 768 && (
@@ -285,24 +293,27 @@ const ProductDetails = () => {
             </div>
 
             {/* Thumbnail Images */}
-            {productImages.length > 1 && (
+            {product.productData.allImages && product.productData.allImages.length > 1 && (
               <div className="flex space-x-2 overflow-x-auto pb-2">
-                {productImages.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 ${
-                      currentImageIndex === index ? 'border-blue-500' : 'border-gray-200'
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
+                {product.productData.allImages
+                  .sort((a, b) => b.is_default === "true" - a.is_default === "true")
+                  .map((img, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(productImages.indexOf(img.url))}
+                      className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 ${
+                        currentImageIndex === productImages.indexOf(img.url) ? 'border-blue-500' : 'border-gray-200'
+                      }`}
+                    >
+                      <img
+                        src={img.url}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      
+                    </button>
+                  ))}
               </div>
             )}
           </div>
@@ -314,8 +325,6 @@ const ProductDetails = () => {
               <h1 className="text-xl md:text-2xl font-medium text-gray-800 mb-1 md:mb-2">
                 {product.title}
               </h1>
-              
-              
             </div>
 
             {/* Price */}
@@ -364,12 +373,9 @@ const ProductDetails = () => {
             {/* Weight Selection */}
             <div>
               <div className="flex flex-wrap gap-2">
-            
-                  <p
-                  className={`px-3 py-1 md:px-4 md:py-2 border rounded text-xs md:text-sm font-medium transition-colors bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200`}
-                  >
+                <p className={`px-3 py-1 md:px-4 md:py-2 border rounded text-xs md:text-sm font-medium transition-colors bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200`}>
                   {product.weight}
-                  </p>
+                </p>
               </div>
             </div>
 
@@ -400,15 +406,12 @@ const ProductDetails = () => {
                 ADD TO CART
               </button>
             </div>
-
-           
           </div>
         </div>
 
         {/* Product Tabs */}
         <div className="mt-6 md:mt-8">
           <div className="flex space-x-2 overflow-x-auto pb-2">
-          
             <button
               onClick={() => setActiveTab('specs')}
               className={`px-4 py-1 md:px-6 md:py-2 rounded-md border font-medium whitespace-nowrap ${
@@ -454,7 +457,6 @@ const ProductDetails = () => {
                   <span className="w-24 md:w-32 text-gray-600">Unit:</span>
                   <span>{product.weight}</span>
                 </div>
-                {/* Add more specification fields as needed */}
               </div>
             )}
           </div>
@@ -495,15 +497,17 @@ const ProductDetails = () => {
       </div>
       
       {/* Product View Modal - Desktop */}
-      {selectedProduct && !isMobileDrawerOpen && (
+      {selectedProduct  && (
         <ProductViewCard 
-          isOpen={isModalOpen} 
-          onClose={handleCloseModal}
-          product={selectedProduct}
+        isOpen={isModalOpen || isMobileDrawerOpen} 
+        onClose={window.innerWidth < 768 ? handleCloseDrawer : handleCloseModal}
+          product={{
+            ...selectedProduct,
+            allImages: selectedProduct.productData.allImages
+          }}
+          isMobile={window.innerWidth < 768}
         />
       )}
-
- 
     </div>
   );
 };

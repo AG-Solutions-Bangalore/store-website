@@ -206,23 +206,43 @@ const Navbar = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      // navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setShowSearchResults(false);
       setSearchQuery("");
     }
   };
 
-  const handleProductClick = (productId) => {
-    const encryptedId = encryptId(productId);
-    navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
-    setShowSearchResults(false);
-    setSearchQuery("");
-  };
+  // const handleProductClick = (productId) => {
+  //   const encryptedId = encryptId(productId);
+  //   navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
+  //   setShowSearchResults(false);
+  //   setSearchQuery("");
+  // };
 
+  // const handleProductClick = async (productId) => {
+  //   const encryptedId = await encryptId(productId); // Add await if encryptId is async
+  //   navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
+  //   setShowSearchResults(false);
+  //   setSearchQuery("");
+  // };
+
+  const handleProductClick = async (productId) => {
+    console.log("Raw Product ID:", productId); // Check if ID exists
+    try {
+      const encryptedId = encryptId(productId);
+      console.log("Encrypted ID:", encryptedId); // Verify encryption
+      navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
+      setShowSearchResults(false);
+      setSearchQuery("");
+    } catch (error) {
+      console.error("Navigation failed:", error);
+    }
+  };
   const menuItems = [
     { name: "Home", path: "/" },
     { name: "Categories", path: "/categories" },
     { name: "Products", path: "/products" },
+    // { name: "About Us", path: "/about" },
   ];
 
   const toggleMobileCategories = () => {
@@ -436,7 +456,11 @@ const Navbar = () => {
                         <div
                           key={product.id}
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
-                          onClick={() => handleProductClick(product.id)}
+                          // onClick={() => handleProductClick(product.id)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevents parent onClick from interfering
+                            handleProductClick(product.id);
+                          }}
                         >
                           <div className="flex-shrink-0 mr-3">
                             {product.subs?.[0]?.product_images ? (

@@ -95,7 +95,14 @@ const DealOfTheDay = () => {
         weight: `${product.product_unit_value}${product.unit_name}`,
         onSale: product.product_spl_offer_price > 0,
         isNew: true,
-        productData: product
+        productData: {
+          ...product,
+         
+          allImages: product.subs.map(sub => ({
+            url: `${productImageUrl}${sub.product_images}`,
+            is_default: sub.is_default
+          }))
+        }
       };
     });
   };
@@ -145,11 +152,11 @@ const DealOfTheDay = () => {
             <h2 className="text-3xl font-medium text-gray-900">Day Of The Deal</h2>
             <p className="text-gray-600 font mt-2">Don't wait. The time will never be just right.</p>
           </div>
-          <div className="bg-[#f8f8fb] text-[#4b5966] px-4 py-2 rounded-md font-mono">
+          {/* <div className="bg-[#f8f8fb] text-[#4b5966] px-4 py-2 rounded-md font-mono">
             {timeLeft.days} Days {timeLeft.hours.toString().padStart(2, '0')}:
             {timeLeft.minutes.toString().padStart(2, '0')}:
             {timeLeft.seconds.toString().padStart(2, '0')}
-          </div>
+          </div> */}
         </div>
         {products.length > itemsPerPage && (
             <div className="flex justify-end items-center mb-2 space-x-4">
