@@ -11,6 +11,78 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Dark blue color scheme */
+  --scrollbar-track: #eceef2;       /* Tailwind's blue-900 */
+  --scrollbar-thumb: #1e40af;      /* Tailwind's blue-800 */
+  --scrollbar-thumb-hover: #1e3a8a; /* Tailwind's blue-900 */
+  --scrollbar-border: #3b82f6;      /* Tailwind's blue-500 for accent */
 }
 
+/* Modern browsers - Stylish WebKit Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
 
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+  border: 2px solid var(--scrollbar-border);
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border-color: #60a5fa; /* Tailwind's blue-400 */
+  transform: scale(1.05);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+/* Firefox - Custom Styling */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-gutter: stable;
+}
+
+/* Optional: Animated scrollbar for interactive feel */
+@keyframes scrollbar-pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+::-webkit-scrollbar-thumb {
+  animation: scrollbar-pulse 3s ease infinite;
+}
+
+/* Special styling for horizontal scrollbars */
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(90deg, var(--scrollbar-thumb), var(--scrollbar-border), var(--scrollbar-thumb));
+}
+
+/* Custom scrollbar for specific containers */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--scrollbar-thumb), var(--scrollbar-thumb-hover));
+}

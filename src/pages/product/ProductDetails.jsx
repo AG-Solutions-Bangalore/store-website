@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Star, Heart, Eye, ChevronLeft, ChevronRight, Settings, X } from 'lucide-react';
+import { Star, Heart, Eye, ChevronLeft, ChevronRight, Settings, X, ShoppingCart, Plus, Minus, CheckCircle } from 'lucide-react';
 import ProductCard from '../../components/Cards/ProductCard';
 import ProductViewCard from '../../components/Cards/ProductViewCard';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import BASE_URL from '../../config/BaseUrl';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
-import { Drawer } from 'vaul';
 import ProductDetailsSkeleton from '../../components/skeletons/ProductDetailsSkeleton';
 import { decryptId } from '../../utils/Encyrption';
 
@@ -26,7 +25,7 @@ const fetchRelatedProducts = async (categoryId) => {
 const ProductDetails = () => {
   const { id } = useParams();
   const decryptedId = decryptId(id);
-  const [selectedWeight, setSelectedWeight] = useState('250g');
+
   const [activeTab, setActiveTab] = useState('specs');
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
@@ -37,14 +36,15 @@ const ProductDetails = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const imageRef = useRef(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const cartItems = useSelector(state => state.cart.items);
 
-  // Fetch product details
+
   const { data: productData, isLoading, error } = useQuery({
     queryKey: ['productDetails', decryptedId],
     queryFn: () => fetchProductDetails(decryptedId)
   });
 
-  // Fetch related products
+
   const { data: relatedProductsData } = useQuery({
     queryKey: ['relatedProducts', productData?.data?.category_ids],
     queryFn: () => fetchRelatedProducts(productData?.data?.category_ids),
@@ -145,22 +145,62 @@ const ProductDetails = () => {
   const relatedProducts = transformRelatedProducts(relatedProductsData);
   const productImages = product ? product.productData.allImages.map(img => img.url) : [];
 
-  const weightOptions = product ? [product.weight] : ['250g', '500g', '1kg', '2kg'];
+
+
+
+  const cartItem = product ? cartItems.find(item => item.id === product.id && item.size === product.weight) : null;
+  const currentCartQuantity = cartItem ? cartItem.quantity : 0;
+  const isInCart = currentCartQuantity > 0;
+
+  useEffect(() => {
+    if (product) {
+    
+      setQuantity(isInCart ? currentCartQuantity : 1);
+    }
+  }, [ isInCart, currentCartQuantity]);
 
   const handleAddToCart = () => {
     if (!product) return;
     
+ 
+    const quantityDifference = quantity - currentCartQuantity;
+
+
+    if (quantityDifference === 0 && isInCart) {
+      toast.info(`${product.title} quantity remains the same`);
+      return;
+    }
+
     const cartItem = {
       id: product.id,
       name: product.title,
       price: product.originalPrice,
-      quantity: quantity,
+      quantity: Math.abs(quantityDifference), 
       image: product.image,
       size: product.weight,
+
+      operation: quantityDifference > 0 ? 'increment' : 'decrement'
     };
     
     dispatch(addToCart(cartItem));
-    toast.success(`${product.title} added to cart`);
+    
+    if (isInCart) {
+      if (quantityDifference > 0) {
+        toast.success(`Added ${quantityDifference} more ${product.title} to cart`);
+      } else {
+        toast.success(`Removed ${Math.abs(quantityDifference)} ${product.title} from cart`);
+      }
+    } else {
+      toast.success(`${quantity} ${product.title} added to cart`);
+    }
+  };
+
+  const handleQuantityChange = (change) => {
+    setQuantity(prev => {
+      const newQuantity = prev + change;
+  
+      return Math.max(1, newQuantity);
+    });
   };
 
   const handleMouseMove = (e) => {
@@ -192,16 +232,10 @@ const ProductDetails = () => {
     setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
   };
 
-  const handleQuantityChange = (action) => {
-    if (action === 'increment') {
-      setQuantity(prev => prev + 1);
-    } else if (action === 'decrement' && quantity > 1) {
-      setQuantity(prev => prev - 1);
-    }
-  };
   const discountPercent = product?.price && product?.originalPrice
-  ? Math.round(((product.price - product.originalPrice) / product.price) * 100)
-  : 0;
+    ? Math.round(((product.price - product.originalPrice) / product.price) * 100)
+    : 0;
+
   if (isLoading) return <ProductDetailsSkeleton/>;
   
   if (error) return (
@@ -379,33 +413,53 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Quantity and Add to Cart */}
-            <div className="flex items-center space-x-3 md:space-x-4">
-              <div className="flex items-center border border-gray-300 rounded">
-                <button
-                  onClick={() => handleQuantityChange('decrement')}
-                  className="px-2 py-1 md:px-3 md:py-2 hover:bg-gray-100 transition-colors text-sm md:text-base"
-                >
-                  -
-                </button>
-                <span className="px-3 py-1 md:px-4 md:py-2 text-center min-w-[2rem] md:min-w-[3rem] text-sm md:text-base">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => handleQuantityChange('increment')}
-                  className="px-2 py-1 md:px-3 md:py-2 hover:bg-gray-100 transition-colors text-sm md:text-base"
-                >
-                  +
-                </button>
-              </div>
+        
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
 
-              <button 
-                onClick={handleAddToCart}
-                className="flex-1 md:flex-none md:w-56 text-center bg-blue-900 text-white px-4 py-1.5 md:px-6 md:py-2.5 rounded hover:bg-gray-700 transition-colors font-medium text-sm md:text-base"
-              >
-                ADD TO CART
-              </button>
-            </div>
+  <div className="flex-1 flex items-center border rounded border-gray-200 max-w-full sm:max-w-[150px] md:max-w-[300px]">
+    <button
+      onClick={() => handleQuantityChange(-1)}
+      className={`flex-1 p-2 hover:bg-gray-100 transition-colors ${
+        quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
+      aria-label="Decrease quantity"
+      disabled={quantity <= 1}
+    >
+      <Minus className="w-3 h-3 mx-auto" />
+    </button>
+    <span className={`px-3 py-1 text-center min-w-[2rem] ${
+      isInCart ? 'bg-green-100 text-green-800 font-medium' : ''
+    }`}>
+      {quantity}
+    </span>
+    <button
+      onClick={() => handleQuantityChange(1)}
+      className="flex-1 p-2 hover:bg-gray-100 transition-colors"
+      aria-label="Increase quantity"
+    >
+      <Plus className="w-3 h-3 mx-auto" />
+    </button>
+  </div>
+
+ 
+  <button
+    onClick={handleAddToCart}
+    className={`flex-1 px-4 py-2  rounded transition-colors flex items-center justify-center gap-2 text-sm ${
+      isInCart 
+        ? 'bg-green-600 hover:bg-green-600 text-white'
+        : 'bg-blue-900 hover:bg-blue-800 text-white'
+    }`}
+  >
+    {isInCart ? (
+      <CheckCircle className="w-4 h-4" />
+    ) : (
+      <ShoppingCart className="w-4 h-4" />
+    )}
+    <span className="whitespace-nowrap">
+      {isInCart ? 'Update Quantity' : 'Add To Cart'}
+    </span>
+  </button>
+</div>
           </div>
         </div>
 
