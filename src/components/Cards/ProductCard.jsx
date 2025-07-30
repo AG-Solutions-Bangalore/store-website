@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Eye } from 'lucide-react';
+import { ShoppingCart, Eye, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { addToCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { encryptId } from '../../utils/Encyrption';
 
 const ProductCard = ({ 
@@ -23,6 +23,8 @@ const ProductCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const cartItems = useSelector(state => state.cart.items);
+  const isInCart = cartItems.some(item => item.id === id);
 
   const handleViewProduct = (e) => {
     e.stopPropagation();
@@ -35,6 +37,8 @@ const ProductCard = ({
   const handleAddToCart = (e) => {
     e.stopPropagation(); 
     e.preventDefault();
+
+    if (isInCart) return;
 
     const cartItem = {
       id,
@@ -121,6 +125,7 @@ const ProductCard = ({
         <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-3">
           <button 
             onClick={handleViewProduct}
+        
             className="flex items-center justify-center gap-1 p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 transition-colors duration-200 w-full"
           >
             <Eye className="w-4 h-4 min-w-[16px] text-gray-900" />
@@ -128,9 +133,18 @@ const ProductCard = ({
           </button>
           <button 
             onClick={handleAddToCart}
-            className="flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 bg-blue-400 hover:bg-blue-600 hover:text-white transition-colors duration-200 w-full"
+            disabled={isInCart}
+            className={`flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 transition-colors duration-200 w-full ${
+            isInCart 
+              ? 'bg-green-700 hover:bg-green-500 text-white cursor-not-allowed' 
+              : 'bg-blue-400 hover:bg-blue-600 hover:text-white cursor-pointer'
+          }`}
           >
+          {isInCart ? (
+            <CheckCircle className="w-4 h-4 min-w-[16px]" />
+          ) : (
             <ShoppingCart className="w-4 h-4 min-w-[16px]" />
+          )}
             <span className="text-xs hidden sm:block font-medium truncate">Cart</span>
           </button>
         </div>

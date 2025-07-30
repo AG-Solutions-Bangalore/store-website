@@ -220,6 +220,8 @@ const Footer = () => {
                       </div>
                       <a 
                         href={`tel:${supportPhone}`} 
+                        target="_blank"
+    rel="noreferrer"
                         className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                       >
                         <Phone className="flex-shrink-0 h-5 w-5 text-blue-600" />
@@ -227,6 +229,8 @@ const Footer = () => {
                       </a>
                       <a 
                         href={`mailto:${supportEmail}`} 
+                        target="_blank"
+    rel="noreferrer"
                         className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                       >
                         <Mail className="flex-shrink-0 h-5 w-5 text-blue-600" />
@@ -237,6 +241,8 @@ const Footer = () => {
                           <a
                             key={index}
                             href="#"
+                            target="_blank"
+    rel="noreferrer"
                             className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-colors"
                           >
                             <Icon size={16} />
@@ -363,6 +369,8 @@ const Footer = () => {
                   <div className="flex items-center space-x-3">
                     <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
                     <a
+                    target="_blank"
+    rel="noreferrer"
                       href={`tel:${supportPhone}`}
                       className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                     >
@@ -373,6 +381,8 @@ const Footer = () => {
                   <div className="flex items-center space-x-3">
                     <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
                     <a
+                    target="_blank"
+    rel="noreferrer"
                       href={`mailto:${supportEmail}`}
                       className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                     >
@@ -383,24 +393,32 @@ const Footer = () => {
                   <div className="flex space-x-3 pt-2">
                     <a
                       href="#"
+                      target="_blank"
+    rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Facebook size={16} />
                     </a>
                     <a
                       href="#"
+                      target="_blank"
+    rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Twitter size={16} />
                     </a>
                     <a
                       href="#"
+                      target="_blank"
+    rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Linkedin size={16} />
                     </a>
                     <a
                       href="#"
+                      target="_blank"
+    rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Instagram size={16} />

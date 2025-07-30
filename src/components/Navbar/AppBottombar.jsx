@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -262,7 +263,7 @@ export function AppBottombar() {
         </div>
               
            
-              <div className="py-1 max-h-[60vh] overflow-y-auto">
+              <div className="py-1 max-h-[60vh] overflow-y-auto custom-scroll">
                 {activeMenu.items.map((subItem, index) => (
                   <motion.div
                     key={subItem.title}
@@ -319,7 +320,7 @@ export function AppBottombar() {
             }}
           >
             <motion.div 
-              className="w-full max-w-md mx-4 mb-16 bg-white rounded-xl shadow-xl overflow-hidden"
+              className="w-full max-w-md mx-4 mb-16 bg-white rounded-xl shadow-xl overflow-hidden "
               initial={{ y: 50, opacity: 0, scale: 0.9 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 50, opacity: 0, scale: 0.9 }}
@@ -417,7 +418,7 @@ export function AppBottombar() {
 
             
                 {!showHistory && (
-                  <div className="overflow-y-auto flex-1">
+                  <div className="overflow-y-auto custom-scroll flex-1">
                     {filteredProducts.length > 0 ? (
                       filteredProducts.map((product) => (
                         <motion.div

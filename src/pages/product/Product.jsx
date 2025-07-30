@@ -31,7 +31,7 @@ const Product = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [selectedRating, setSelectedRating] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 6;
+  const productsPerPage = 8;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -86,7 +86,18 @@ const Product = () => {
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
-
+  useEffect(() => {
+    if (showMobileFilters) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [showMobileFilters]);
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProduct(null);

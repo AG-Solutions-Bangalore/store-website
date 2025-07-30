@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, ShoppingCart, Plus, Minus } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { X, ShoppingCart, Plus, Minus, CheckCircle } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
 
 const ProductViewCard = ({ isOpen, onClose, product }) => {
     const dispatch = useDispatch();
+    const cartItems = useSelector(state => state.cart.items);
     const [quantity, setQuantity] = useState(1);
     const [selectedSize, setSelectedSize] = useState(null);
     const [showZoom, setShowZoom] = useState(false);
@@ -14,17 +15,35 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
     const modalRef = useRef(null);
     const imageRef = useRef(null);
 
+
+    const cartItem = product ? cartItems.find(item => item.id === product.id && item.size === selectedSize) : null;
+    const currentCartQuantity = cartItem ? cartItem.quantity : 0;
+    const isInCart = currentCartQuantity > 0;
+    
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [isOpen]);
+
     useEffect(() => {
         if (product) {
             setCurrentImage(product.image);
-            setQuantity(1);
+   
+            setQuantity(isInCart ? currentCartQuantity : 1);
 
             const defaultSize = product.productData?.product_unit_value && product.productData?.unit_name
                 ? `${product.productData.product_unit_value}${product.productData.unit_name}`
                 : '250g';
             setSelectedSize(defaultSize);
         }
-    }, [product]);
+    }, [product, isInCart, currentCartQuantity]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -45,23 +64,49 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
     if (!isOpen || !product) return null;
 
     const handleQuantityChange = (change) => {
-        setQuantity(prev => Math.max(1, prev + change));
+        setQuantity(prev => {
+            const newQuantity = prev + change;
+          
+            return Math.max(1, newQuantity);
+        });
     };
 
     const handleAddToCart = () => {
         if (!product) return;
 
+       
+        const quantityDifference = quantity - currentCartQuantity;
+
+  
+        if (quantityDifference === 0 && isInCart) {
+            toast.info(`${product.title} quantity remains the same`);
+            onClose();
+            return;
+        }
+
         const cartItem = {
             id: product.id,
             name: product.title,
             price: product.originalPrice,
-            quantity: quantity,
+            quantity: Math.abs(quantityDifference), 
             image: product.image,
             size: selectedSize,
+
+            operation: quantityDifference > 0 ? 'increment' : 'decrement'
         };
 
         dispatch(addToCart(cartItem));
-        toast.success(`${product.title} added to cart`);
+        
+        if (isInCart) {
+            if (quantityDifference > 0) {
+                toast.success(`Added ${quantityDifference} more ${product.title} to cart`);
+            } else {
+                toast.success(`Removed ${Math.abs(quantityDifference)} ${product.title} from cart`);
+            }
+        } else {
+            toast.success(`${quantity} ${product.title} added to cart`);
+        }
+        
         onClose();
     };
 
@@ -92,10 +137,10 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
         : 0;
 
     return (
-        <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto ">
             <div
                 ref={modalRef}
-                className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] md:max-h-[95vh] overflow-y-auto"
+                className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] md:max-h-[95vh] overflow-y-auto custom-scroll"
             >
                 <div className="p-4 md:p-6 relative">
                     <button
@@ -146,51 +191,47 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
                                 </div>
                             </div>
 
-                        
-{product.productData.allImages.length > 1 && (
-    <div className="flex gap-2 overflow-x-auto py-2">
-                                {/* Show default image first */}
-                                {product.productData.allImages
-                                    .filter(img => img.is_default === "true")
-                                    .map((img, idx) => (
-                                        <button
-                                            key={`default-${idx}`}
-                                            onClick={() => handleThumbnailClick(img.url)}
-                                            className={`flex-shrink-0 w-10 h-10 bg-gray-100 overflow-hidden cursor-pointer transition-all border ${currentImage === img.url ? 'border-2 border-blue-500' : 'border-gray-200'
-                                                }`}
-                                        >
-                                            <img
-                                                src={img.url}
-                                                alt="Default thumbnail"
-                                                className="w-full h-full object-contain p-1"
-                                                loading="lazy"
-                                            />
-                                        </button>
-                                    ))}
+                            {product.productData.allImages.length > 1 && (
+                                <div className="flex gap-2 overflow-x-auto py-2">
+                                    {/* Show default image first */}
+                                    {product.productData.allImages
+                                        .filter(img => img.is_default === "true")
+                                        .map((img, idx) => (
+                                            <button
+                                                key={`default-${idx}`}
+                                                onClick={() => handleThumbnailClick(img.url)}
+                                                className={`flex-shrink-0 w-10 h-10 bg-gray-100 overflow-hidden cursor-pointer transition-all border ${currentImage === img.url ? 'border-2 border-blue-500' : 'border-gray-200'
+                                                    }`}
+                                            >
+                                                <img
+                                                    src={img.url}
+                                                    alt="Default thumbnail"
+                                                    className="w-full h-full object-contain p-1"
+                                                    loading="lazy"
+                                                />
+                                            </button>
+                                        ))}
 
-                                {/* Show remaining images */}
-                                {product.productData.allImages
-                                    .filter(img => img.is_default !== "true")
-                                    .map((img, idx) => (
-                                        <button
-                                            key={`other-${idx}`}
-                                            onClick={() => handleThumbnailClick(img.url)}
-                                            className={`flex-shrink-0 w-10 h-10 bg-gray-100 overflow-hidden cursor-pointer transition-all border ${currentImage === img.url ? 'border-2 border-blue-500' : 'border-gray-200'
-                                                }`}
-                                        >
-                                            <img
-                                                src={img.url}
-                                                alt={`Thumbnail ${idx + 1}`}
-                                                className="w-full h-full object-contain p-1"
-                                                loading="lazy"
-                                            />
-                                        </button>
-                                    ))}
-                            </div>
-)}
-                            
-
-
+                                    {/* Show remaining images */}
+                                    {product.productData.allImages
+                                        .filter(img => img.is_default !== "true")
+                                        .map((img, idx) => (
+                                            <button
+                                                key={`other-${idx}`}
+                                                onClick={() => handleThumbnailClick(img.url)}
+                                                className={`flex-shrink-0 w-10 h-10 bg-gray-100 overflow-hidden cursor-pointer transition-all border ${currentImage === img.url ? 'border-2 border-blue-500' : 'border-gray-200'
+                                                    }`}
+                                            >
+                                                <img
+                                                    src={img.url}
+                                                    alt={`Thumbnail ${idx + 1}`}
+                                                    className="w-full h-full object-contain p-1"
+                                                    loading="lazy"
+                                                />
+                                            </button>
+                                        ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Product Details Section */}
@@ -226,9 +267,9 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">
+                                {/* <label className="block text-sm font-medium text-gray-700">
                                     Unit
-                                </label>
+                                </label> */}
                                 <div className="flex flex-wrap gap-2">
                                     {sizeOptions.map((size) => (
                                         <button
@@ -246,32 +287,47 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
                             </div>
 
                             <div className="flex flex-wrap items-center gap-3 pt-2">
-                                <div className="flex items-center border rounded border-gray-200">
+                                <div className="flex-1 flex items-center border rounded border-gray-200">
                                     <button
                                         onClick={() => handleQuantityChange(-1)}
-                                        className="p-1 hover:bg-gray-100 transition-colors"
+                                        className={`flex-1 p-1 hover:bg-gray-100 transition-colors ${
+                                            quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
                                         aria-label="Decrease quantity"
+                                        disabled={quantity <= 1}
                                     >
-                                        <Minus className="w-3 h-3" />
+                                        <Minus className="w-3 h-3 mx-auto" />
                                     </button>
-                                    <span className="px-3 py-1 text-center min-w-[2rem]">
+                                    <span className={`px-3 py-1 text-center min-w-[2rem] ${
+                                        isInCart ? 'bg-green-100 text-green-800 font-medium' : ''
+                                    }`}>
                                         {quantity}
                                     </span>
                                     <button
                                         onClick={() => handleQuantityChange(1)}
-                                        className="p-1 hover:bg-gray-100 transition-colors"
+                                        className="flex-1 p-1 hover:bg-gray-100 transition-colors"
                                         aria-label="Increase quantity"
                                     >
-                                        <Plus className="w-3 h-3" />
+                                        <Plus className="w-3 h-3 mx-auto" />
                                     </button>
                                 </div>
 
                                 <button
                                     onClick={handleAddToCart}
-                                    className="flex-1 bg-blue-900 text-white px-3 py-2 rounded hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 text-sm"
+                                    className={`flex-1 px-3 py-2 rounded transition-colors flex items-center justify-center gap-2 text-sm ${
+                                        isInCart 
+                                            ? 'bg-green-700 hover:bg-green-600 text-white'
+                                            : 'bg-blue-900 hover:bg-blue-800 text-white'
+                                    }`}
                                 >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    <span>Add To Cart</span>
+                                    {isInCart ? (
+                                        <CheckCircle className="w-4 h-4" />
+                                    ) : (
+                                        <ShoppingCart className="w-4 h-4" />
+                                    )}
+                                    <span>
+                                        {isInCart ? 'Update Quantity' : 'Add To Cart'}
+                                    </span>
                                 </button>
                             </div>
                         </div>
