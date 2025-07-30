@@ -199,7 +199,7 @@ const Navbar = () => {
             .toLowerCase()
             .includes(searchQuery.toLowerCase())
       );
-      setSearchResults(results.slice(0, 5));
+      setSearchResults(results);
     }
   }, [searchQuery, productsData]);
 
@@ -227,10 +227,10 @@ const Navbar = () => {
   // };
 
   const handleProductClick = async (productId) => {
-    console.log("Raw Product ID:", productId); // Check if ID exists
+    // console.log("Raw Product ID:", productId); // Check if ID exists
     try {
       const encryptedId = encryptId(productId);
-      console.log("Encrypted ID:", encryptedId); // Verify encryption
+      // console.log("Encrypted ID:", encryptedId); // Verify encryption
       navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
       setShowSearchResults(false);
       setSearchQuery("");
@@ -271,14 +271,16 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <div className="flex items-center justify-between h-10 text-sm">
               <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2 text-gray-600">
+                <a  target="_blank"
+    rel="noreferrer"      href={`tel:${supportPhone}`}  className="flex items-center space-x-2 text-gray-600">
                   <Phone size={12} />
                   <span>{supportPhone}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-600">
+                </a>
+                <a     target="_blank"
+    rel="noreferrer"    href={`tel:${supportWhatsapp}`} className="flex items-center space-x-2 text-gray-600">
                   <MessageCircleCode size={12} />
                   <span>{supportWhatsapp}</span>
-                </div>
+                </a>
               </div>
 
               <div className="absolute left-1/2 transform -translate-x-1/2 text-gray-600 font-medium hidden lg:block">
@@ -290,6 +292,8 @@ const Navbar = () => {
                   <motion.a
                     key={index}
                     href="#"
+                        target="_blank"
+    rel="noreferrer"
                     className="text-gray-600 hover:text-blue-600 transition-colors duration-300"
                     variants={socialVariants}
                     whileHover={{ scale: 1.1 }}
@@ -450,7 +454,9 @@ const Navbar = () => {
 
                 {/* Search Results Dropdown */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute z-50 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200">
+                  <div
+                  
+                  className="absolute z-50 mt-2 w-64 h-96 overflow-y-auto custom-scroll bg-white rounded-lg shadow-lg border border-gray-200">
                     <div className="py-1">
                       {searchResults.map((product) => (
                         <div
@@ -458,7 +464,7 @@ const Navbar = () => {
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
                           // onClick={() => handleProductClick(product.id)}
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevents parent onClick from interfering
+                            e.stopPropagation(); 
                             handleProductClick(product.id);
                           }}
                         >
@@ -486,7 +492,7 @@ const Navbar = () => {
                             )}
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900 truncate">
+                            <div className="text-sm  w-40  break-words font-medium text-gray-900 ">
                               {product.product_name}
                             </div>
                             <div className="text-xs text-gray-500">
@@ -582,7 +588,8 @@ const Navbar = () => {
           <>
             {/* Overlay */}
             <motion.div
-              className="hidden sm:hidden md:block lg:hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
+              className="hidden sm:hidden md:block lg:hidden fixed inset-0 z-50 
+               bg-black/30 backdrop-blur-sm"
               variants={overlayVariants}
               initial="closed"
               animate="open"
@@ -592,7 +599,7 @@ const Navbar = () => {
 
             {/* Sidebar */}
             <motion.div
-              className="hidden sm:hidden md:block lg:hidden fixed top-0 left-0 h-full w-72 bg-white z-50 overflow-y-auto border-r border-gray-100"
+              className="hidden sm:hidden md:block lg:hidden fixed top-0 left-0 h-full w-72 bg-white z-50 overflow-y-auto custom-scroll border-r border-gray-100"
               variants={sidebarVariants}
               initial="closed"
               animate="open"
@@ -729,9 +736,9 @@ const Navbar = () => {
                   {/* Mobile Search Results */}
                   {showSearchResults && searchResults.length > 0 && (
                     <motion.div
-                      className="mt-2 bg-white rounded-lg shadow-md border border-gray-200"
+                      className="mt-2 bg-white rounded-lg h-64 overflow-y-auto custom-scroll shadow-md border border-gray-200"
                       initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
+                      animate={{ opacity: 1, height: 270 }}
                       exit={{ opacity: 0, height: 0 }}
                     >
                       <div className="py-1">
@@ -794,14 +801,20 @@ const Navbar = () => {
                     Contact
                   </h3>
                   <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center space-x-3">
+                    <a
+                          target="_blank"
+                          rel="noreferrer"
+                                            href={`tel:${supportPhone}`}
+                    className="flex items-center space-x-3">
                       <Phone size={14} className="text-gray-400" />
                       <span>{supportPhone}</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
+                    </a>
+                    <a       target="_blank"
+    rel="noreferrer"
+                      href={`tel:${supportWhatsapp}`} className="flex items-center space-x-3">
                       <MessageCircleCode size={14} className="text-gray-400" />
                       <span>{supportWhatsapp}</span>
-                    </div>
+                    </a>
                   </div>
                 </motion.div>
 
@@ -839,3 +852,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+//changed to motion/react 

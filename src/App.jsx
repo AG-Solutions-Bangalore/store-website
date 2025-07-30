@@ -15,16 +15,17 @@ import { Toaster } from "sonner";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop.jsx";
 import TermsCondition from "./pages/terms-condition/TermsCondition.jsx";
 import AboutUs from "./pages/about/AboutUs.jsx";
+import Blog from "./pages/blog/Blog.jsx";
+import BlogDetails from "./pages/blog/BlogDetails.jsx";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <Router>
-      <ScrollToTop/>
+      <ScrollToTop />
       <Toaster richColors position="top-right" />
       <QueryClientProvider client={queryClient}>
-  
         <MainLayout>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -38,6 +39,8 @@ function App() {
             <Route path="/order-failed" element={<OrderFailed />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog-details" element={<BlogDetails />} />
             <Route path="/terms-condition" element={<TermsCondition />} />
           </Routes>
         </MainLayout>

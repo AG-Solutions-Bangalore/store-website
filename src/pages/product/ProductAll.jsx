@@ -23,7 +23,7 @@ const ProductAll = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [selectedRating, setSelectedRating] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 6;
+  const productsPerPage = 8;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -95,13 +95,18 @@ const ProductAll = () => {
     return Array.from(weightSet);
   }, [products]);
 
-  const handleTagRemove = (tag) => {
-    setSelectedTags(prev => prev.filter(t => t !== tag));
-  };
+// Add this useEffect hook near your other state declarations
+useEffect(() => {
+  if (showMobileFilters) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
 
-  const clearAllTags = () => {
-    setSelectedTags([]);
+  return () => {
+    document.body.style.overflow = 'auto';
   };
+}, [showMobileFilters]);
 
   const handleProductView = (product) => {
     setSelectedProduct(product);
@@ -557,7 +562,7 @@ const ProductAll = () => {
               </div>
               
               {/* Filter Content */}
-              <div className="py-4 max-h-[60vh] overflow-y-auto">
+              <div className="py-4 max-h-[60vh] overflow-y-auto custom-scroll">
                 {/* Category Filter */}
                 <div className="px-4 pb-4">
                   <div className="flex items-center justify-between mb-4">
