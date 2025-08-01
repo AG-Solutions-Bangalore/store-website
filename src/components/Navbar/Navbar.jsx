@@ -29,7 +29,8 @@ const Navbar = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
-  
+  const cartLength = useSelector((state) => state.cart.items.length);
+
   const {
     storeName,
     storeDescription,
@@ -61,7 +62,7 @@ const Navbar = () => {
   // Process categories data
   const categories = {
     left: categoryData?.data?.slice(0, 5) || [], // First 5 categories for Popular
-    right: categoryData?.data?.slice(5) || []    // Remaining categories for More
+    right: categoryData?.data?.slice(5) || [], // Remaining categories for More
   };
 
   const fetchAllProducts = async () => {
@@ -180,7 +181,7 @@ const Navbar = () => {
 
   const mobileCategoryVariants = {
     closed: { height: 0, opacity: 0 },
-    open: { height: "auto", opacity: 1 }
+    open: { height: "auto", opacity: 1 },
   };
 
   useEffect(() => {
@@ -240,9 +241,10 @@ const Navbar = () => {
   };
   const menuItems = [
     { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
     { name: "Categories", path: "/categories" },
     { name: "Products", path: "/products" },
-    // { name: "About Us", path: "/about" },
+    { name: "Contact", path: "/contact" },
   ];
 
   const toggleMobileCategories = () => {
@@ -271,13 +273,21 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <div className="flex items-center justify-between h-10 text-sm">
               <div className="flex items-center space-x-6">
-                <a  target="_blank"
-    rel="noreferrer"      href={`tel:${supportPhone}`}  className="flex items-center space-x-2 text-gray-600">
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`tel:${supportPhone}`}
+                  className="flex items-center space-x-2 text-gray-600"
+                >
                   <Phone size={12} />
                   <span>{supportPhone}</span>
                 </a>
-                <a     target="_blank"
-    rel="noreferrer"    href={`tel:${supportWhatsapp}`} className="flex items-center space-x-2 text-gray-600">
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`tel:${supportWhatsapp}`}
+                  className="flex items-center space-x-2 text-gray-600"
+                >
                   <MessageCircleCode size={12} />
                   <span>{supportWhatsapp}</span>
                 </a>
@@ -292,8 +302,8 @@ const Navbar = () => {
                   <motion.a
                     key={index}
                     href="#"
-                        target="_blank"
-    rel="noreferrer"
+                    target="_blank"
+                    rel="noreferrer"
                     className="text-gray-600 hover:text-blue-600 transition-colors duration-300"
                     variants={socialVariants}
                     whileHover={{ scale: 1.1 }}
@@ -335,7 +345,9 @@ const Navbar = () => {
               {menuItems.map((item) => (
                 <div key={item.name} className="relative group">
                   <motion.div
-                    onClick={() => item.name !== "Categories" && navigate(item.path)}
+                    onClick={() =>
+                      item.name !== "Categories" && navigate(item.path)
+                    }
                     className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 cursor-pointer px-3 py-2 rounded-md transition-all duration-300"
                     variants={itemVariants}
                     whileHover={{
@@ -382,7 +394,9 @@ const Navbar = () => {
                               key={category.id}
                               onClick={() => {
                                 const encryptedId = encryptId(category.id);
-                                navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                                navigate(
+                                  `/product/${encodeURIComponent(encryptedId)}`
+                                );
                               }}
                               className="block px-1.5 py-1 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-colors duration-200 cursor-pointer"
                               whileHover={{ x: 5 }}
@@ -400,7 +414,9 @@ const Navbar = () => {
                               key={category.id}
                               onClick={() => {
                                 const encryptedId = encryptId(category.id);
-                                navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                                navigate(
+                                  `/product/${encodeURIComponent(encryptedId)}`
+                                );
                               }}
                               className="block px-1.5 py-1 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-colors duration-200 cursor-pointer"
                               whileHover={{ x: 5 }}
@@ -454,9 +470,7 @@ const Navbar = () => {
 
                 {/* Search Results Dropdown */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div
-                  
-                  className="absolute z-50 mt-2 w-64 h-96 overflow-y-auto custom-scroll bg-white rounded-lg shadow-lg border border-gray-200">
+                  <div className="absolute z-50 mt-2 w-64 h-96 overflow-y-auto custom-scroll bg-white rounded-lg shadow-lg border border-gray-200">
                     <div className="py-1">
                       {searchResults.map((product) => (
                         <div
@@ -464,7 +478,7 @@ const Navbar = () => {
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
                           // onClick={() => handleProductClick(product.id)}
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             handleProductClick(product.id);
                           }}
                         >
@@ -517,8 +531,8 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-                 {/* Mobile menu button */}
-                 <div className="hidden  md:block lg:hidden ">
+              {/* Mobile menu button */}
+              <div className="hidden  md:block lg:hidden ">
                 <motion.button
                   onClick={() => setMobileMenuOpen((prev) => !prev)}
                   className="text-gray-600 hover:text-blue-600 focus:outline-none transition-colors duration-300"
@@ -552,7 +566,7 @@ const Navbar = () => {
                 </motion.button>
               </div>
 
-              <motion.div
+              {/* <motion.div
                 className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors duration-300 "
                 variants={cartVariants}
                 whileHover={{
@@ -574,9 +588,25 @@ const Navbar = () => {
                       : "ITEM"}
                   </span>
                 </div>
-              </motion.div>
+              </motion.div> */}
+              <motion.div
+                className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors duration-300"
+                variants={cartVariants}
+                whileHover={{
+                  scale: 1.1,
+                  rotate: 5,
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/cart")}
+              >
+                <div className="relative">
+                  <ShoppingCart size={24} />
 
-           
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                    {cartLength}
+                  </span>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -612,7 +642,11 @@ const Navbar = () => {
                     className="flex items-center"
                     variants={menuItemVariants}
                   >
-                    <img src={storeLogoImage} alt="Logo" className="h-8 w-auto" />
+                    <img
+                      src={storeLogoImage}
+                      alt="Logo"
+                      className="h-8 w-auto"
+                    />
                   </motion.div>
                   <motion.button
                     onClick={() => setMobileMenuOpen(false)}
@@ -696,7 +730,11 @@ const Navbar = () => {
                                 key={category.id}
                                 onClick={() => {
                                   const encryptedId = encryptId(category.id);
-                                  navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                                  navigate(
+                                    `/product/${encodeURIComponent(
+                                      encryptedId
+                                    )}`
+                                  );
                                   setMobileMenuOpen(false);
                                 }}
                                 className="px-3 py-2 text-gray-600 hover:text-blue-600 cursor-pointer"
@@ -802,16 +840,20 @@ const Navbar = () => {
                   </h3>
                   <div className="space-y-2 text-sm text-gray-600">
                     <a
-                          target="_blank"
-                          rel="noreferrer"
-                                            href={`tel:${supportPhone}`}
-                    className="flex items-center space-x-3">
+                      target="_blank"
+                      rel="noreferrer"
+                      href={`tel:${supportPhone}`}
+                      className="flex items-center space-x-3"
+                    >
                       <Phone size={14} className="text-gray-400" />
                       <span>{supportPhone}</span>
                     </a>
-                    <a       target="_blank"
-    rel="noreferrer"
-                      href={`tel:${supportWhatsapp}`} className="flex items-center space-x-3">
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      href={`tel:${supportWhatsapp}`}
+                      className="flex items-center space-x-3"
+                    >
                       <MessageCircleCode size={14} className="text-gray-400" />
                       <span>{supportWhatsapp}</span>
                     </a>
@@ -853,4 +895,4 @@ const Navbar = () => {
 
 export default Navbar;
 
-//changed to motion/react 
+//changed to motion/react

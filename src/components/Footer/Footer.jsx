@@ -82,8 +82,7 @@ const Footer = () => {
               </div>
 
               <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                Lohiya is the biggest market of grocery products. Get your daily
-                needs from our store.
+            {storeDescription}
               </p>
 
               <div className="flex flex-col md:flex-row items-center  justify-start gap-2">
@@ -109,155 +108,152 @@ const Footer = () => {
               </div>
             </div>
 
-           
-  {/* Mobile Accordions */}
-  <div className="w-full lg:hidden space-y-4">
-                  {/* Category Accordion */}
-                  <div className="border-b border-gray-200 pb-4">
+            {/* Mobile Accordions */}
+            <div className="w-full lg:hidden space-y-4">
+              {/* Category Accordion */}
+              <div className="border-b border-gray-200 pb-4">
+                <button
+                  className="w-full flex justify-between items-center text-base font-medium text-gray-900"
+                  onClick={() => toggleSection("category")}
+                >
+                  <span>Categories</span>
+                  {openSections.category ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </button>
+                <div
+                  className={`mt-3 space-y-2 ${
+                    openSections.category ? "block" : "hidden"
+                  }`}
+                >
+                  {categoryData?.data?.map((category, index) => (
                     <button
-                      className="w-full flex justify-between items-center text-base font-medium text-gray-900"
-                      onClick={() => toggleSection("category")}
+                      key={index}
+                      onClick={() => {
+                        const encryptedId = encryptId(category.id);
+                        navigate(`/product/${encodeURIComponent(encryptedId)}`);
+                      }}
+                      className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
                     >
-                      <span>Categories</span>
-                      {openSections.category ? (
-                        <ChevronUp size={20} />
-                      ) : (
-                        <ChevronDown size={20} />
-                      )}
+                      {category.category_name}
                     </button>
-                    <div
-                      className={`mt-3 space-y-2 ${
-                        openSections.category ? "block" : "hidden"
-                      }`}
-                    >
-                      {categoryData?.data?.map((category, index) => (
-                        <button
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Links Accordion */}
+              <div className="border-b border-gray-200 pb-4">
+                <button
+                  className="w-full flex justify-between items-center text-base font-medium text-gray-900"
+                  onClick={() => toggleSection("quicklink")}
+                >
+                  <span>Quick Links</span>
+                  {openSections.quicklink ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </button>
+                <div
+                  className={`mt-3 space-y-2 ${
+                    openSections.quicklink ? "block" : "hidden"
+                  }`}
+                >
+                  <button
+                    onClick={() => navigate("/products")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    Products
+                  </button>
+                  <button
+                    onClick={() => navigate("/cart")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    View Cart
+                  </button>
+                  <button
+                    onClick={() => navigate("/about")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    About us
+                  </button>
+                  <button
+                    onClick={() => navigate("/terms-condition")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    Terms & Conditions
+                  </button>
+                  <button
+                    onClick={() => navigate("/contact")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    Contact us
+                  </button>
+                </div>
+              </div>
+
+              {/* Contact Accordion */}
+              <div className="border-b border-gray-200 pb-4">
+                <button
+                  className="w-full flex justify-between items-center text-base font-medium text-gray-900"
+                  onClick={() => toggleSection("contact")}
+                >
+                  <span>Contact</span>
+                  {openSections.contact ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </button>
+                <div
+                  className={`mt-3 space-y-3 ${
+                    openSections.contact ? "block" : "hidden"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <MapPin className="flex-shrink-0 h-5 w-5 text-blue-600 mt-0.5" />
+                    <span className="text-gray-600 text-sm">
+                      {storeAddress}
+                    </span>
+                  </div>
+                  <a
+                    href={`tel:${supportPhone}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Phone className="flex-shrink-0 h-5 w-5 text-blue-600" />
+                    <span className="text-sm">{supportPhone}</span>
+                  </a>
+                  <a
+                    href={`mailto:${supportEmail}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Mail className="flex-shrink-0 h-5 w-5 text-blue-600" />
+                    <span className="text-sm">{supportEmail}</span>
+                  </a>
+                  <div className="flex gap-3 pt-2">
+                    {[Facebook, Twitter, Linkedin, Instagram].map(
+                      (Icon, index) => (
+                        <a
                           key={index}
-                          onClick={() => {
-                            const encryptedId = encryptId(category.id);
-                            navigate(`/product/${encodeURIComponent(encryptedId)}`);
-                          }}
-                          className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                          href="#"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-colors"
                         >
-                          {category.category_name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-  
-                  {/* Quick Links Accordion */}
-                  <div className="border-b border-gray-200 pb-4">
-                    <button
-                      className="w-full flex justify-between items-center text-base font-medium text-gray-900"
-                      onClick={() => toggleSection("quicklink")}
-                    >
-                      <span>Quick Links</span>
-                      {openSections.quicklink ? (
-                        <ChevronUp size={20} />
-                      ) : (
-                        <ChevronDown size={20} />
-                      )}
-                    </button>
-                    <div
-                      className={`mt-3 space-y-2 ${
-                        openSections.quicklink ? "block" : "hidden"
-                      }`}
-                    >
-                      <button
-                        onClick={() => navigate("/products")}
-                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      >
-                        Products
-                      </button>
-                      <button
-                        onClick={() => navigate("/cart")}
-                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      >
-                        View Cart
-                      </button>
-                      <button
-                        onClick={() => navigate("/about")}
-                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      >
-                        About us
-                      </button>
-                      <button
-                        onClick={() => navigate('/terms-condition')}
-                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      >
-                        Terms & Conditions
-                      </button>
-                      <button
-                        onClick={() => navigate('/contact')}
-                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      >
-                        Contact us
-                      </button>
-                      <button
-                        onClick={() => navigate('/compare')}
-                        className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      >
-                      Compare
-                      </button>
-                    </div>
-                  </div>
-  
-                  {/* Contact Accordion */}
-                  <div className="border-b border-gray-200 pb-4">
-                    <button
-                      className="w-full flex justify-between items-center text-base font-medium text-gray-900"
-                      onClick={() => toggleSection("contact")}
-                    >
-                      <span>Contact</span>
-                      {openSections.contact ? (
-                        <ChevronUp size={20} />
-                      ) : (
-                        <ChevronDown size={20} />
-                      )}
-                    </button>
-                    <div
-                      className={`mt-3 space-y-3 ${
-                        openSections.contact ? "block" : "hidden"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <MapPin className="flex-shrink-0 h-5 w-5 text-blue-600 mt-0.5" />
-                        <span className="text-gray-600 text-sm">{storeAddress}</span>
-                      </div>
-                      <a 
-                        href={`tel:${supportPhone}`} 
-                        target="_blank"
-    rel="noreferrer"
-                        className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        <Phone className="flex-shrink-0 h-5 w-5 text-blue-600" />
-                        <span className="text-sm">{supportPhone}</span>
-                      </a>
-                      <a 
-                        href={`mailto:${supportEmail}`} 
-                        target="_blank"
-    rel="noreferrer"
-                        className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        <Mail className="flex-shrink-0 h-5 w-5 text-blue-600" />
-                        <span className="text-sm">{supportEmail}</span>
-                      </a>
-                      <div className="flex gap-3 pt-2">
-                        {[Facebook, Twitter, Linkedin, Instagram].map((Icon, index) => (
-                          <a
-                            key={index}
-                            href="#"
-                            target="_blank"
-    rel="noreferrer"
-                            className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-colors"
-                          >
-                            <Icon size={16} />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
+                          <Icon size={16} />
+                        </a>
+                      )
+                    )}
                   </div>
                 </div>
+              </div>
+            </div>
             <div className="hidden w-full lg:grid lg:grid-cols-4 lg:w-[75%] gap-2">
               <div className="lg:col-span-2">
                 <h3 className="text-xl text-gray-900 mb-4">Category</h3>
@@ -268,16 +264,13 @@ const Footer = () => {
                     {categoryData?.data?.slice(0, 5).map((category, index) => (
                       <li key={index}>
                         <button
-                        onClick={() => 
-                          {
+                          onClick={() => {
                             const encryptedId = encryptId(category.id);
-                            
-                            navigate(`/product/${encodeURIComponent(encryptedId)}`)
-                          }
-                        
-                        
-                        
-                        }
+
+                            navigate(
+                              `/product/${encodeURIComponent(encryptedId)}`
+                            );
+                          }}
                           className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                         >
                           {category.category_name}
@@ -291,16 +284,13 @@ const Footer = () => {
                     {categoryData?.data?.slice(5, 10).map((category, index) => (
                       <li key={index}>
                         <button
-                        onClick={() => 
-                          {
+                          onClick={() => {
                             const encryptedId = encryptId(category.id);
-                            
-                            navigate(`/product/${encodeURIComponent(encryptedId)}`)
-                          }
-                        
-                        
-                        
-                        }
+
+                            navigate(
+                              `/product/${encodeURIComponent(encryptedId)}`
+                            );
+                          }}
                           className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                         >
                           {category.category_name}
@@ -326,7 +316,7 @@ const Footer = () => {
                   </li>
                   <li>
                     <button
-                       onClick={() => navigate("/cart")}
+                      onClick={() => navigate("/cart")}
                       className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                       View Cart
@@ -334,10 +324,18 @@ const Footer = () => {
                   </li>
                   <li>
                     <button
-                         onClick={() => navigate("/about")}
+                      onClick={() => navigate("/about")}
                       className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                       About us
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate("/blog")}
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                    >
+                      Blog
                     </button>
                   </li>
                   <li>
@@ -351,7 +349,6 @@ const Footer = () => {
                   <li>
                     <button
                       onClick={() => navigate("/contact")}
-                  
                       className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                       Contact us
@@ -402,8 +399,8 @@ const Footer = () => {
                   <div className="flex items-center space-x-3">
                     <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
                     <a
-                    target="_blank"
-    rel="noreferrer"
+                      target="_blank"
+                      rel="noreferrer"
                       href={`tel:${supportPhone}`}
                       className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                     >
@@ -414,8 +411,8 @@ const Footer = () => {
                   <div className="flex items-center space-x-3">
                     <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
                     <a
-                    target="_blank"
-    rel="noreferrer"
+                      target="_blank"
+                      rel="noreferrer"
                       href={`mailto:${supportEmail}`}
                       className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
                     >
@@ -427,7 +424,7 @@ const Footer = () => {
                     <a
                       href="#"
                       target="_blank"
-    rel="noreferrer"
+                      rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Facebook size={16} />
@@ -435,7 +432,7 @@ const Footer = () => {
                     <a
                       href="#"
                       target="_blank"
-    rel="noreferrer"
+                      rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Twitter size={16} />
@@ -443,7 +440,7 @@ const Footer = () => {
                     <a
                       href="#"
                       target="_blank"
-    rel="noreferrer"
+                      rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Linkedin size={16} />
@@ -451,7 +448,7 @@ const Footer = () => {
                     <a
                       href="#"
                       target="_blank"
-    rel="noreferrer"
+                      rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Instagram size={16} />
@@ -470,8 +467,15 @@ const Footer = () => {
           <div className="text-gray-600 text-sm text-center ">
             Copyright © <span className="text-blue-600">Lohiya's</span> all
             rights reserved. Powered by{" "}
-            <a href="https://ag-solutions.in/"  target="_blank"
-    rel="noreferrer" className="text-blue-600">Ag-Solutions</a>.
+            <a
+              href="https://ag-solutions.in/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600"
+            >
+              Ag-Solutions
+            </a>
+            .
           </div>
         </div>
       </div>
@@ -481,5 +485,4 @@ const Footer = () => {
 
 export default Footer;
 
-
-//sajid 
+//sajid
