@@ -15,6 +15,10 @@ import { Toaster } from "sonner";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop.jsx";
 import TermsCondition from "./pages/terms-condition/TermsCondition.jsx";
 import AboutUs from "./pages/about/AboutUs.jsx";
+import Compare from "./pages/compare/Compare.jsx";
+import OrderStatusChecker from "./pages/order-status-checker/OrderStatusChecker.jsx";
+import RecentlyViewed from "./pages/recently-viewed/RecentlyViewed.jsx";
+import Chatbot from "./components/Chatbot/Chatbot.jsx";
 
 const queryClient = new QueryClient();
 
@@ -39,7 +43,11 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/terms-condition" element={<TermsCondition />} />
+            <Route path="/compare" element={<Compare />} />
+            <Route path="/order-status-checker" element={<OrderStatusChecker />} />
+            <Route path="/recently-viewed" element={<RecentlyViewed />} />
           </Routes>
+          <Chatbot />
         </MainLayout>
       </QueryClientProvider>
     </Router>

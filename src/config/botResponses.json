@@ -1,0 +1,51 @@
+{
+  "greetings": {
+    "responses": [
+      "Hello! I'm your shopping assistant. How can I help you today?",
+      "Hi there! Ready to find some great products?",
+      "Welcome back! What can I help you find today?"
+    ],
+    "followUps": [
+      "Show me best selling products",
+      "What's on sale today?",
+      "Show me grocery items"
+    ]
+  },
+  "productNotFound": {
+    "responses": [
+      "I couldn't find exactly what you're looking for. Here are some similar products:",
+      "No exact matches, but you might like these:",
+      "These might not be exactly what you wanted, but they're close:"
+    ],
+    "suggestions": [
+      "Try searching with different keywords",
+      "Browse our best sellers",
+      "Check out today's deals"
+    ]
+  },
+  "suggestions": {
+    "price": [
+      "Would you like to see products under ₹{price}?",
+      "Should I show cheaper options under ₹{price}?",
+      "I can show more affordable options under ₹{price} if you'd like"
+    ],
+    "category": [
+      "Would you like to see all {category} products?",
+      "Should I show more {category} options?",
+      "I found some great {category} products you might like"
+    ]
+  },
+  "help": {
+    "examples": [
+      "You can ask me things like:",
+      "Try searching for:",
+      "Here are some things I can help with:"
+    ],
+    "queries": [
+      "Atta under ₹100",
+      "Best selling snacks",
+      "Organic products",
+      "Today's deals"
+    ]
+  }
+}

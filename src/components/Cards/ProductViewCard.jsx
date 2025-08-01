@@ -3,6 +3,7 @@ import { X, ShoppingCart, Plus, Minus, CheckCircle } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
+import { addToRecentlyViewed } from '../../redux/slices/recentlyViewedSlice';
 
 const ProductViewCard = ({ isOpen, onClose, product }) => {
     const dispatch = useDispatch();
@@ -19,7 +20,23 @@ const ProductViewCard = ({ isOpen, onClose, product }) => {
     const cartItem = product ? cartItems.find(item => item.id === product.id && item.size === selectedSize) : null;
     const currentCartQuantity = cartItem ? cartItem.quantity : 0;
     const isInCart = currentCartQuantity > 0;
-    
+useEffect(() => {
+  if (product && Object.keys(product).length > 0) {
+    dispatch(addToRecentlyViewed({
+      id: product.id,
+      title: product.title,
+      image: product.image,
+      hoverImage: product.hoverImage || product.image,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      weight: product.weight,
+      category: product.category,
+      rating: product.rating || 4,
+      onSale: product.onSale,
+      isNew: product.isNew
+    }));
+  }
+}, [product, dispatch]);
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
