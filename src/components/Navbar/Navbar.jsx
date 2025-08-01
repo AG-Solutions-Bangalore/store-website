@@ -213,25 +213,10 @@ const Navbar = () => {
     }
   };
 
-  // const handleProductClick = (productId) => {
-  //   const encryptedId = encryptId(productId);
-  //   navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
-  //   setShowSearchResults(false);
-  //   setSearchQuery("");
-  // };
-
-  // const handleProductClick = async (productId) => {
-  //   const encryptedId = await encryptId(productId); // Add await if encryptId is async
-  //   navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
-  //   setShowSearchResults(false);
-  //   setSearchQuery("");
-  // };
 
   const handleProductClick = async (productId) => {
-    // console.log("Raw Product ID:", productId); // Check if ID exists
     try {
       const encryptedId = encryptId(productId);
-      // console.log("Encrypted ID:", encryptedId); // Verify encryption
       navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
       setShowSearchResults(false);
       setSearchQuery("");

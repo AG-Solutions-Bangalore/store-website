@@ -155,7 +155,6 @@ const Chatbot = () => {
       setMessages(prev => [...prev, botResponse]);
       setShowProducts(filtered.length > 0 || showRandomProducts);
     } catch (error) {
-      console.error("Error:", error);
       setMessages(prev => [
         ...prev,
         {
