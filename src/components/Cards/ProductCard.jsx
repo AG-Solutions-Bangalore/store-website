@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Eye, CheckCircle } from 'lucide-react';
+import { ShoppingCart, Eye, CheckCircle, Scale } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { addToCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { encryptId } from '../../utils/Encyrption';
+import { addToCompare } from '../../redux/slices/compareSlice';
+
+
 
 const ProductCard = ({ 
   id, 
@@ -21,10 +24,13 @@ const ProductCard = ({
   onViewProduct
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+    const [isCompareChecked, setIsCompareChecked] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector(state => state.cart.items);
+    const compareItems = useSelector(state => state.compare.items);
   const isInCart = cartItems.some(item => item.id === id);
+  const isInCompare = compareItems.some(item => item.id === id);
 
   const handleViewProduct = (e) => {
     e.stopPropagation();
@@ -52,7 +58,38 @@ const ProductCard = ({
     dispatch(addToCart(cartItem));
     toast.success(`${title} added to cart`);
   };
-
+const handleCompareToggle = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (isInCompare) {
+      dispatch(removeFromCompare(id));
+      toast.info(`${title} removed from compare`);
+      setIsCompareChecked(false);
+    } else {
+      if (compareItems.length >= 3) {
+        toast.warning('You can compare maximum 3 products');
+        return;
+      }
+      
+      const compareItem = {
+        id,
+        name: title,
+        image,
+        price: originalPrice,
+        category,
+        weight,
+        rating,
+        description: 'test', // Add description if available
+        brand: 'test', // Add brand if available
+        sku: '11', // Add SKU if available
+      };
+      
+      dispatch(addToCompare(compareItem));
+      toast.success(`${title} added to compare`);
+      setIsCompareChecked(true);
+    }
+  };
   const handleCardClick = (e) => {
    
     if (!e.target.closest('button')) {
@@ -85,6 +122,15 @@ const ProductCard = ({
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
+        <div className="absolute top-2 right-2 z-10">
+          <button 
+            onClick={handleCompareToggle}
+            className={`p-1 cursor-pointer rounded-full ${isInCompare ? 'bg-blue-600 text-black' : 'bg-white text-red-500'} shadow-sm border border-gray-200 hover:bg-blue-50 transition-colors`}
+            aria-label="Compare"
+          >
+            <Scale size={16} />
+          </button>
+        </div>
       </div>
     
       <div className="p-4 flex flex-col flex-grow border-t border-gray-200">

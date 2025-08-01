@@ -87,7 +87,6 @@ const BlogDetails = () => {
                           {article.date}
                         </div>
                         <a
-                          href="blog-left-sidebar.html"
                           className="text-[14px] text-blue-900 leading-[20px] capitalize"
                         >
                           - {article.tag}

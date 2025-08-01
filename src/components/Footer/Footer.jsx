@@ -82,8 +82,7 @@ const Footer = () => {
               </div>
 
               <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                Lohiya is the biggest market of grocery products. Get your daily
-                needs from our store.
+            {storeDescription}
               </p>
 
               <div className="flex flex-col md:flex-row items-center  justify-start gap-2">
@@ -353,6 +352,33 @@ const Footer = () => {
                       className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                       Contact us
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate("/compare")}
+                  
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                    >
+                     Compare
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate("/order-status-checker")}
+                  
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                    >
+                     Order Status
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate("/recently-viewed")}
+                  
+                      className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
+                    >
+                 Recently Viewed
                     </button>
                   </li>
                 </ul>
