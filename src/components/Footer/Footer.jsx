@@ -485,4 +485,3 @@ const Footer = () => {
 
 export default Footer;
 
-//sajid
