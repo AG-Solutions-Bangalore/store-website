@@ -19,7 +19,6 @@
   --scrollbar-border: #3b82f6;      /* Tailwind's blue-500 for accent */
 }
 
-/* Modern browsers - Stylish WebKit Scrollbar */
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
