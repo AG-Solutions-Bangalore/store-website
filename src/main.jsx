@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-wroker.js')
+        navigator.serviceWorker.register('/sw.js')
             .then(registration => {
                 console.log('ServiceWorker registration successful');
             })
@@ -29,3 +29,26 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
+// if ('serviceWorker' in navigator) {
+//     window.addEventListener('load', () => {
+//       navigator.serviceWorker.register('/sw.js').then((registration) => {
+//         console.log('ServiceWorker registration successful');
+  
+//         registration.onupdatefound = () => {
+//           const newWorker = registration.installing;
+//           newWorker.onstatechange = () => {
+//             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+
+//               console.log('New content is available; please refresh.');
+          
+//               window.location.reload();
+//             }
+//           };
+//         };
+//       }).catch(err => {
+//         console.log('ServiceWorker registration failed: ', err);
+//       });
+//     });
+//   }
+  

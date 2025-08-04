@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
-import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
-import { useSelector, useDispatch } from 'react-redux';
-import { clearCart } from '../../redux/slices/CartSlice';
-import { useNavigate } from 'react-router-dom';
-import BASE_URL from '../../config/BaseUrl';
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
+import { clearCart } from "../../redux/slices/CartSlice";
+import { useNavigate } from "react-router-dom";
+import BASE_URL from "../../config/BaseUrl";
 
 import { toast } from "sonner";
 import useNumericInput from "../../hooks/useNumericInput";
@@ -14,7 +14,7 @@ const Checkout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
-  const keyDown = useNumericInput()
+  const keyDown = useNumericInput();
   const [formData, setFormData] = useState({
     firm_name: "",
     gstin: "",
@@ -25,29 +25,38 @@ const Checkout = () => {
     address: "",
     delivery_instructions: "",
     delivery_charges: "0",
-    discount_amount: "0"
+    discount_amount: "0",
   });
-
+  const [sameAsMobile, setSameAsMobile] = useState(false);
+  const [billingType, setBillingType] = useState("individual"); 
   const [errors, setErrors] = useState({
     firm_name: "",
     name: "",
     mobile: "",
     email: "",
     address: "",
-    gstin: ""
+    gstin: "",
   });
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const subtotalMrp = cartItems.reduce(
+    (sum, item) => sum + item.mrp * item.quantity,
+    0
+  );
   const deliveryCharges = parseFloat(formData.delivery_charges) || 0;
-  const discountAmount = parseFloat(formData.discount_amount) || 0;
-  const total = subtotal + deliveryCharges - discountAmount;
-
+  // const discountAmount = parseFloat(formData.discount_amount) || 0;
+  const discountAmount =subtotalMrp - subtotal
+  const total = (subtotalMrp + deliveryCharges) - discountAmount;
+  const discountPercentage =((discountAmount / subtotalMrp) * 100).toFixed(2)
   const validateField = (name, value) => {
     let error = "";
-    
+
     switch (name) {
       case "firm_name":
-        if (!value.trim()) error = "Firm name is required";
+        if (value && value.length < 2) error = "Firm name must be at least 2 characters";
         break;
       case "name":
         if (!value.trim()) error = "Full name is required";
@@ -55,62 +64,85 @@ const Checkout = () => {
         break;
       case "mobile":
         if (!value.trim()) error = "Mobile number is required";
-        else if (!/^[0-9]{10}$/.test(value)) error = "Invalid mobile number (10 digits required)";
+        else if (!/^[0-9]{10}$/.test(value))
+          error = "Invalid mobile number (10 digits required)";
         break;
       case "whatsapp":
-        if (value && !/^[0-9]{10}$/.test(value)) error = "Invalid WhatsApp number (10 digits required)";
+        if (value && !/^[0-9]{10}$/.test(value))
+          error = "Invalid WhatsApp number (10 digits required)";
         break;
       case "email":
         if (!value.trim()) error = "Email is required";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = "Invalid email address";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+          error = "Invalid email address";
         break;
       case "address":
         if (!value.trim()) error = "Address is required";
-        else if (value.length < 10) error = "Address must be at least 10 characters";
+        else if (value.length < 10)
+          error = "Address must be at least 10 characters";
         break;
       case "gstin":
-        if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
-          error = "Invalid GSTIN format";
+        if (
+          value &&
+          !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+            value
+          )
+        ) {
+          error = "Invalid GSTIN format eg.11AAAAA1111Z1A1";
         }
         break;
       default:
         break;
     }
-    
+
     return error;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Validate the field
-    const error = validateField(name, value);
-    
-    setErrors(prev => ({
+
+    const transformedValue = name === "gstin" ? value.toUpperCase() : value;
+    const error = validateField(name, transformedValue);
+
+    setErrors((prev) => ({
       ...prev,
-      [name]: error
+      [name]: error,
     }));
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: transformedValue,
+      };
+
+      if (sameAsMobile && name === "mobile") {
+        updated.whatsapp = transformedValue;
+      }
+
+      return updated;
+    });
   };
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = {...errors};
+    const newErrors = { ...errors };
+  
     
-
-    Object.keys(formData).forEach(key => {
-      if (key !== "gstin" && key !== "whatsapp" && key !== "delivery_instructions" && 
-          key !== "delivery_charges" && key !== "discount_amount") {
-        const error = validateField(key, formData[key]);
-        newErrors[key] = error;
-        if (error) isValid = false;
-      }
+    const requiredFields = ["name", "mobile", "email", "address"];
+    
+   
+    if (billingType === "company" && formData.firm_name) {
+      const error = validateField("firm_name", formData.firm_name);
+      newErrors.firm_name = error;
+      if (error) isValid = false;
+    }
+  
+    requiredFields.forEach((key) => {
+      const error = validateField(key, formData[key]);
+      newErrors[key] = error;
+      if (error) isValid = false;
     });
-    
+  
     setErrors(newErrors);
     return isValid;
   };
@@ -126,47 +158,47 @@ const Checkout = () => {
     onSuccess: (data) => {
       if (data.code === 201) {
         const orderData = {
-          order_id: `${data.data}`, 
+          order_id: `${data.data}`,
           total_amount: total.toFixed(2),
           address: formData.address,
           mobile: formData.mobile,
-          support_phone: '1800-123-4567', 
-          subs: cartItems.map(item => ({
+          support_phone: "+9198745632",
+          subs: cartItems.map((item) => ({
             product_id: item.id,
             product_name: item.name,
             product_image: item.image,
             product_price: item.price.toString(),
             product_qnty: item.quantity.toString(),
-            size: item.size || 'Standard'
-          }))
+            size: item.size || "Standard",
+          })),
         };
         dispatch(clearCart());
-        navigate('/order-success', { state: { orderData } });
-        toast.success(`${data.message}`)
+        navigate("/order-success", { state: { orderData } });
+        toast.success(`${data.message}`);
       }
     },
     onError: (error) => {
-      console.error('Order placement failed:', error);
-      navigate('/order-failed');
-    }
+      console.error("Order placement failed:", error);
+      navigate("/order-failed");
+    },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     const orderData = {
       ...formData,
-      subs: cartItems.map(item => ({
+      subs: cartItems.map((item) => ({
         product_id: item.id,
         product_price: item.price.toString(),
-        product_qnty: item.quantity.toString()
-      }))
+        product_qnty: item.quantity.toString(),
+      })),
     };
-    
+
     placeOrder(orderData);
   };
 
@@ -185,7 +217,7 @@ const Checkout = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Sub-Total</span>
                   <span className="text-gray-900 font-medium">
-                    ₹{subtotal.toFixed(2)}
+                    ₹{subtotalMrp.toFixed(2)}
                   </span>
                 </div>
 
@@ -202,7 +234,24 @@ const Checkout = () => {
                     -₹{discountAmount.toFixed(2)}
                   </span>
                 </div>
+                <div className="flex justify-center">
+                                    <div className="inline-flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg text-xs">
+                                      <span className="bg-green-600 text-white px-2 py-0.5 rounded font-semibold">
+                                      {
+                                     discountPercentage
 
+                                      }
+                                   
+                                        % OFF
+                                      </span>
+                                      <span className="text-green-600 font-medium">
+                                        Congrats! 🎉 You Saved ₹
+                                        {(
+                                          discountAmount
+                                        ).toFixed(2)} 
+                                      </span>
+                                    </div>
+                                  </div>
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between items-center text-lg font-medium">
                     <span className="text-gray-900">Total Amount</span>
@@ -237,7 +286,9 @@ const Checkout = () => {
                         </span>
                       </div>
                       {item.size && (
-                        <p className="text-xs text-gray-500 mt-1">Size: {item.size}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Size: {item.size}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -250,46 +301,88 @@ const Checkout = () => {
           <div className="w-full lg:w-[65%]">
             <form onSubmit={handleSubmit}>
               <div className="bg-white rounded-md border border-gray-200">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Billing Details
-                  </h2>
-                </div>
+              <div className="p-4 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-900">
+                Billing Details
+              </h2>
+              
+              {/* Billing Type Tabs */}
+              <div className="flex border-b border-gray-200 mt-4">
+                <button
+                  type="button"
+                  className={`flex-1 py-2 px-4 text-center font-medium text-sm ${
+                    billingType === "individual"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setBillingType("individual")}
+                >
+                  Individual
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2 px-4 text-center font-medium text-sm ${
+                    billingType === "company"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setBillingType("company")}
+                >
+                  Company
+                </button>
+              </div>
+            </div>
 
                 <div className="p-4 space-y-6">
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Firm Name*
-                        </label>
-                        <input
-                          type="text"
-                          name="firm_name"
-                          value={formData.firm_name}
-                          onChange={handleInputChange}
-                          className={`w-full px-3 py-2 border ${errors.firm_name ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
-                        />
-                        {errors.firm_name && (
-                          <p className="mt-1 text-xs text-red-500">{errors.firm_name}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          GSTIN
-                        </label>
-                        <input
-                          type="text"
-                          name="gstin"
-                          value={formData.gstin}
-                          onChange={handleInputChange}
-                          className={`w-full px-3 py-2 border ${errors.gstin ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
-                        />
-                        {errors.gstin && (
-                          <p className="mt-1 text-xs text-red-500">{errors.gstin}</p>
-                        )}
-                      </div>
+                  {billingType === "company" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Firm Name
+                      </label>
+                      <input
+                        type="text"
+                        name="firm_name"
+                        maxLength={150}
+                        value={formData.firm_name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${
+                          errors.firm_name
+                            ? "border-red-500"
+                            : "border-gray-200"
+                        } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                      />
+                      {errors.firm_name && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.firm_name}
+                        </p>
+                      )}
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        GSTIN
+                      </label>
+                      <input
+                        type="text"
+                        name="gstin"
+                        minLength={15}
+                        maxLength={15}
+                        placeholder="11AAAAA1111Z1A1"
+                        value={formData.gstin}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${
+                          errors.gstin ? "border-red-500" : "border-gray-200"
+                        } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                      />
+                      {errors.gstin && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.gstin}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -298,12 +391,17 @@ const Checkout = () => {
                       <input
                         type="text"
                         name="name"
+                        maxLength={80}
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        className={`w-full px-3 py-2 border ${
+                          errors.name ? "border-red-500" : "border-gray-200"
+                        } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
                       />
                       {errors.name && (
-                        <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.name}
+                        </p>
                       )}
                     </div>
 
@@ -319,16 +417,51 @@ const Checkout = () => {
                           onChange={handleInputChange}
                           onKeyDown={keyDown}
                           maxLength="10"
-                          className={`w-full px-3 py-2 border ${errors.mobile ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                          className={`w-full px-3 py-2 border ${
+                            errors.mobile ? "border-red-500" : "border-gray-200"
+                          } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
                         />
                         {errors.mobile && (
-                          <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.mobile}
+                          </p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          WhatsApp Number
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            WhatsApp Number
+                          </label>
+                          <div className="flex items-center gap-2 mb-1">
+                            <input
+                              id="sameAsMobile"
+                              type="checkbox"
+                              checked={sameAsMobile}
+                              disabled={!/^[0-9]{10}$/.test(formData.mobile)}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setSameAsMobile(checked);
+
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  whatsapp: checked ? prev.mobile : "",
+                                }));
+
+                                setErrors((prev) => ({
+                                  ...prev,
+                                  whatsapp: "",
+                                }));
+                              }}
+                              className="accent-blue-600"
+                            />
+                            <label
+                              htmlFor="sameAsMobile"
+                              className="text-sm text-gray-700"
+                            >
+                              Same as mo.
+                            </label>
+                          </div>
+                        </div>
                         <input
                           type="tel"
                           name="whatsapp"
@@ -336,10 +469,17 @@ const Checkout = () => {
                           onChange={handleInputChange}
                           onKeyDown={keyDown}
                           maxLength="10"
-                          className={`w-full px-3 py-2 border ${errors.whatsapp ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                          className={`w-full px-3 py-2 border ${
+                            errors.whatsapp
+                              ? "border-red-500"
+                              : "border-gray-200"
+                          } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
                         />
+
                         {errors.whatsapp && (
-                          <p className="mt-1 text-xs text-red-500">{errors.whatsapp}</p>
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.whatsapp}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -353,10 +493,15 @@ const Checkout = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        maxLength={100}
+                        className={`w-full px-3 py-2 border ${
+                          errors.email ? "border-red-500" : "border-gray-200"
+                        } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
                       />
                       {errors.email && (
-                        <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.email}
+                        </p>
                       )}
                     </div>
 
@@ -369,10 +514,15 @@ const Checkout = () => {
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-200'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
+                        maxLength={200}
+                        className={`w-full px-3 py-2 border ${
+                          errors.address ? "border-red-500" : "border-gray-200"
+                        } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm`}
                       />
                       {errors.address && (
-                        <p className="mt-1 text-xs text-red-500">{errors.address}</p>
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.address}
+                        </p>
                       )}
                     </div>
 
@@ -419,20 +569,20 @@ const Checkout = () => {
                     </div> */}
 
                     <div className="pt-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-                      <button 
+                      <button
                         type="button"
-                        onClick={() => navigate('/cart')}
+                        onClick={() => navigate("/cart")}
                         className="text-gray-600 hover:text-blue-800 text-sm font-medium flex items-center"
                       >
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         Back to Cart
                       </button>
-                      <button 
+                      <button
                         type="submit"
                         disabled={isLoading || cartItems.length === 0}
                         className="bg-blue-900 text-white px-6 py-2 rounded-md hover:bg-blue-800 text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
-                        {isLoading ? 'Placing Order...' : 'Place Order'}
+                        {isLoading ? "Placing Order..." : "Place Order"}
                       </button>
                     </div>
                   </div>

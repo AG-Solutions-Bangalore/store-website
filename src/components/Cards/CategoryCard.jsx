@@ -103,7 +103,7 @@ const CategoryCard = ({
                 const encryptedId = encryptId(id);
                 navigate(`/product/${encodeURIComponent(encryptedId)}`);
               }}
-              className="text-[9px] xs:text-[10px] sm:text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 xs:px-3 py-1 rounded-full transition-colors duration-200 cursor-pointer"
+              className="text-[9px] xs:text-[10px] sm:text-xs bg-blue-900 hover:bg-blue-600 text-white px-2 xs:px-3 py-1 rounded-full transition-colors duration-200 cursor-pointer"
             >
               View Details
             </button>

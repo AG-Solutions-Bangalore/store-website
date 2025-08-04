@@ -9,7 +9,7 @@ const InfoCard = ({
   return (
     <div className="flex flex-col items-center text-center p-6 bg-white rounded-lg border border-gray-200">
     
-      <div className="mb-4 text-blue-500">
+      <div className="mb-4 text-blue-900">
         {icon}
       </div>
       

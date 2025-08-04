@@ -1,16 +1,15 @@
 // RecentlyViewed.jsx
 import React, { useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Heart, ShoppingCart, CheckCircle, Scale, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, ShoppingCart, CheckCircle, Scale, X, Plus, Minus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../../redux/slices/CartSlice';
-import { addToCompare, removeFromCompare } from '../../redux/slices/compareSlice';
+import { addToCart, removeFromProductCart } from '../../redux/slices/CartSlice';
+
 import { removeFromRecentlyViewed } from '../../redux/slices/recentlyViewedSlice';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { encryptId } from '../../utils/Encyrption';
 
 const RecentlyViewed = () => {
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const scrollContainerRef = useRef(null);
@@ -19,7 +18,6 @@ const RecentlyViewed = () => {
   
   // Get data from Redux store
   const cartItems = useSelector(state => state.cart.items);
-  const compareItems = useSelector(state => state.compare.items);
   const recentlyViewed = useSelector(state => state.recentlyViewed.items);
 
   const scroll = (direction) => {
@@ -30,52 +28,52 @@ const RecentlyViewed = () => {
     }
   };
 
+  const handleQuantityChange = (product, change) => {
+    const cartItem = cartItems.find(item => item.id === product.id && item.size === product.weight);
+    const currentQuantity = cartItem ? cartItem.quantity : 0;
+    const newQuantity = currentQuantity + change;
+    
+    if (newQuantity < 1) {
+      // Remove from cart if quantity would go below 1
+      dispatch(removeFromProductCart({ id: product.id, size: product.weight }));
+      toast.info(`${product.title} removed from cart`);
+      return;
+    }
+    
+    const operation = change > 0 ? 'increment' : 'decrement';
+    
+    dispatch(addToCart({
+      id: product.id,
+      name: product.title,
+      price: product.originalPrice,
+      quantity: Math.abs(change),
+      image: product.image,
+      size: product.weight,
+      operation
+    }));
+
+    if (change > 0) {
+      toast.success(`Added ${change} more ${product.title} to cart`);
+    } else {
+      toast.info(`Removed ${Math.abs(change)} ${product.title} from cart`);
+    }
+  };
+
   const handleAddToCart = (product, e) => {
     e.stopPropagation();
     
-    const isInCart = cartItems.some(item => item.id === product.id);
-    if (isInCart) return;
-
-    const cartItem = {
+    dispatch(addToCart({
       id: product.id,
       name: product.title,
       price: product.originalPrice,
       quantity: 1,
       image: product.image,
-      size: product.weight || 'Standard'
-    };
+      size: product.weight || 'Standard',
+      operation: 'increment',
+      mrp:product.price,
+    }));
 
-    dispatch(addToCart(cartItem));
     toast.success(`${product.title} added to cart`);
-  };
-
-  const handleCompareToggle = (product, e) => {
-    e.stopPropagation();
-    
-    const isInCompare = compareItems.some(item => item.id === product.id);
-    
-    if (isInCompare) {
-      dispatch(removeFromCompare(product.id));
-      toast.info(`${product.title} removed from compare`);
-    } else {
-      if (compareItems.length >= 3) {
-        toast.warning('You can compare maximum 3 products');
-        return;
-      }
-      
-      const compareItem = {
-        id: product.id,
-        name: product.title,
-        image: product.image,
-        price: product.originalPrice,
-        category: product.category,
-        weight: product.weight,
-        rating: product.rating,
-      };
-      
-      dispatch(addToCompare(compareItem));
-      toast.success(`${product.title} added to compare`);
-    }
   };
 
   const handleRemoveItem = (productId, e) => {
@@ -137,8 +135,10 @@ const RecentlyViewed = () => {
         >
           <div className="inline-flex space-x-4">
             {recentlyViewed.map((product) => {
-              const isInCart = cartItems.some(item => item.id === product.id);
-              const isInCompare = compareItems.some(item => item.id === product.id);
+              const cartItem = cartItems.find(item => item.id === product.id && item.size === product.weight);
+              const isInCart = Boolean(cartItem);
+              const currentCartQuantity = cartItem ? cartItem.quantity : 0;
+              
               const discountPercent = product.price && product.originalPrice ? 
                 Math.round(((product.price - product.originalPrice) / product.price) * 100) : 0;
 
@@ -166,15 +166,7 @@ const RecentlyViewed = () => {
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute top-2 right-10 z-10">
-                      <button 
-                        onClick={(e) => handleCompareToggle(product, e)}
-                        className={`p-1 cursor-pointer rounded-full ${isInCompare ? 'bg-blue-600 text-black' : 'bg-white text-red-500'} shadow-sm border border-gray-200 hover:bg-blue-50 transition-colors`}
-                        aria-label="Compare"
-                      >
-                        <Scale size={16} />
-                      </button>
-                    </div>
+                    
                     {product.onSale && (
                       <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded text-xs font-semibold bg-green-400 text-black">
                         {discountPercent}% OFF
@@ -221,24 +213,43 @@ const RecentlyViewed = () => {
                     </div>
 
                     <div className="flex justify-between gap-2 border-t border-gray-200 pt-3">
-                      <button 
-                        onClick={(e) => handleAddToCart(product, e)}
-                        disabled={isInCart}
-                        className={`flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 transition-colors duration-200 ${
-                          isInCart 
-                            ? 'bg-green-700 hover:bg-green-500 text-white cursor-not-allowed' 
-                            : 'bg-blue-400 hover:bg-blue-600 hover:text-white cursor-pointer'
-                        }`}
-                      >
-                        {isInCart ? (
-                          <CheckCircle className="w-4 h-4 min-w-[16px]" />
-                        ) : (
+                      {isInCart ? (
+                        <div className="flex-1 p-1 flex items-center justify-between border border-gray-200 rounded-lg overflow-hidden">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuantityChange(product, -1);
+                            }}
+                            className="p-1 hover:bg-gray-100 transition-colors"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-3 h-3 mx-auto" />
+                          </button>
+                          <span className={`px-2 text-center min-w-[1.5rem] text-xs ${
+                            isInCart ? 'bg-green-100 text-green-800 font-medium' : ''
+                          }`}>
+                            {currentCartQuantity}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuantityChange(product, 1);
+                            }}
+                            className="p-1 hover:bg-gray-100 transition-colors"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-3 h-3 mx-auto" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={(e) => handleAddToCart(product, e)}
+                          className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 bg-blue-400 hover:bg-blue-600 hover:text-white transition-colors duration-200 cursor-pointer"
+                        >
                           <ShoppingCart className="w-4 h-4 min-w-[16px]" />
-                        )}
-                        <span className="text-xs font-medium truncate">
-                          {isInCart ? 'Added' : 'Cart'}
-                        </span>
-                      </button>
+                          <span className="text-xs font-medium truncate">Cart</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

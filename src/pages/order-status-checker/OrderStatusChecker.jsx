@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 
 const OrderStatusChecker = () => {
-  const [orderId, setOrderId] = useState('');
+  const [orderId, setOrderId] = useState('LOH-2025-26-1023');
   const [orderFound, setOrderFound] = useState(null);
   
   const handleTrackOrder = (e) => {

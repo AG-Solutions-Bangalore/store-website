@@ -4,6 +4,7 @@ import { Earth, Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import BASE_URL from "../../config/BaseUrl";
 import { toast } from "sonner";
+import useNumericInput from "../../hooks/useNumericInput";
 
 const fetchCompanyData = async () => {
   const response = await axios.get(`${BASE_URL}/api/web-fetch-company`);
@@ -20,6 +21,7 @@ const Contact = () => {
     email_id: "",
     description: "",
   });
+const keyDown = useNumericInput()
 
   const [errors, setErrors] = useState({});
 
@@ -140,7 +142,7 @@ const Contact = () => {
     <div className="max-w-[85rem] px-4 sm:px-6 md:px-10 lg:px-16 mx-auto py-[40px] mx:auto">
       <div className="w-full mb-6 flex flex-col items-center text-center">
         <h2 className="text-[#4b5966] font-semibold text-[22px] sm:text-[24px] md:text-[28px] leading-tight">
-          Get In <span className="text-blue-600">Touch</span>
+          Get In <span className="text-blue-900">Touch</span>
         </h2>
 
         <p className="mt-4 text-sm sm:text-base text-[#777] max-w-[480px]">
@@ -189,7 +191,7 @@ const Contact = () => {
             )}
 
             <iframe
-              src="//maps.google.com/maps?q=-12.942227,-38.480291&z=15&output=embed"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.4708561108378!2d77.5934283757302!3d12.877416387429395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae6b2e8944d60f%3A0x9b9d9e3e6d18fa40!2sLohiya&#39;s%20Kitchen!5e0!3m2!1sen!2sin!4v1754306791583!5m2!1sen!2sin"
               className={`w-full h-full border border-[#eee] rounded-[5px] transition-opacity duration-500 ${
                 mapLoaded ? "opacity-100" : "opacity-0 absolute top-0 left-0"
               }`}
@@ -197,6 +199,7 @@ const Contact = () => {
               loading="lazy"
               onLoad={() => setMapLoaded(true)}
             />
+
           </div>
 
           <div className="w-full lg:w-1/2 ">
@@ -205,6 +208,9 @@ const Contact = () => {
                 <input
                   type="text"
                   name="fullname"
+       
+maxLength={50}
+
                   value={contactData.fullname}
                   onChange={handleChange}
                   className={`w-full p-3 border rounded-[4px] text-sm focus:outline-none focus:ring-2 ${
@@ -224,6 +230,8 @@ const Contact = () => {
                 <input
                   type="email"
                   name="email_id"
+              
+maxLength={80}
                   value={contactData.email_id}
                   onChange={handleChange}
                   className={`w-full p-3 border rounded-[4px] text-sm focus:outline-none focus:ring-2 ${
@@ -243,6 +251,9 @@ const Contact = () => {
                 <input
                   type="text"
                   name="mobile_no"
+                  minLength={10}
+maxLength={10}
+onKeyDown={keyDown}
                   value={contactData.mobile_no}
                   onChange={handleChange}
                   className={`w-full p-3 border rounded-[4px] text-sm focus:outline-none focus:ring-2 ${
@@ -251,7 +262,7 @@ const Contact = () => {
                       : "border-gray-300 focus:ring-blue-500"
                   }`}
                   placeholder="Phone"
-                  maxLength={10}
+       
                 />
                 {errors.mobile_no && (
                   <p className="text-red-500 text-xs mt-1">
@@ -267,6 +278,8 @@ const Contact = () => {
                   value={contactData.description}
                   onChange={handleChange}
                   rows="4"
+                
+maxLength={200}
                   className="w-full px-4 py-2 border border-gray-300 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="Your message..."
                 />
@@ -274,7 +287,7 @@ const Contact = () => {
 
               <button
                 type="submit"
-                className="bg-blue-900 text-white px-4 py-2 rounded-[4px] hover:bg-blue-800 text-sm cursor-pointer"
+                className="bg-blue-900 text-white px-4 py-2 rounded-[4px] hover:bg-blue-600 text-sm cursor-pointer"
               >
                 {loader ? "Saving Data .." : "Save"}
               </button>
