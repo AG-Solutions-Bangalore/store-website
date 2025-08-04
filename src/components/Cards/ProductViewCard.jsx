@@ -108,6 +108,7 @@ useEffect(() => {
             quantity: Math.abs(quantityDifference), 
             image: product.image,
             size: selectedSize,
+            mrp:product.price,
 
             operation: quantityDifference > 0 ? 'increment' : 'decrement'
         };
@@ -334,7 +335,7 @@ useEffect(() => {
                                     className={`flex-1 px-3 py-2 rounded transition-colors flex items-center justify-center gap-2 text-sm ${
                                         isInCart 
                                             ? 'bg-green-700 hover:bg-green-600 text-white'
-                                            : 'bg-blue-900 hover:bg-blue-800 text-white'
+                                            : 'bg-blue-900 hover:bg-blue-600 text-white'
                                     }`}
                                 >
                                     {isInCart ? (

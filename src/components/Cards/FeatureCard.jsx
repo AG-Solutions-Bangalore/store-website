@@ -39,7 +39,7 @@ const FeatureCard = ({
           <p className="text-md text-gray-500 mb-4 drop-shadow-md">
             {subtitle1 } <br/> {subtitle2}
           </p>
-          <button className="bg-blue-900 hover:bg-gray-900 text-white px-2 py-1 rounded-sm text-sm font-medium transition-colors shadow-lg">
+          <button className="bg-blue-900 hover:bg-blue-600 text-white px-2 py-1 rounded-sm text-sm font-medium transition-colors shadow-lg">
             {buttonText}
           </button>
         </div>

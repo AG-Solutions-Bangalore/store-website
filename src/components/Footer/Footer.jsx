@@ -85,18 +85,33 @@ const Footer = () => {
             {storeDescription}
               </p>
 
-              <div className="flex flex-col md:flex-row items-center  justify-start gap-2">
-                <div className="flex items-center bg-blue-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors w-full md:w-auto">
+              <div
+               
+                   
+              className="flex flex-col md:flex-row items-center  justify-start gap-2">
+
+
+                <a
+                 href={googleStoreUrl}
+                 target="_blank"
+                rel="noreferrer"
+                className="flex items-center bg-blue-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors w-full md:w-auto">
                   <PlaySquare className="mr-2" />
                   <div className="flex flex-col leading-tight">
-                    <div className="text-[10px] uppercase">GET IT ON</div>
+                    <div
+                  
+                    className="text-[10px] uppercase">GET IT ON</div>
                     <div className="text-xs font-medium truncate">
                       Google Play
                     </div>
                   </div>
-                </div>
+                </a>
 
-                <div className="flex items-center bg-blue-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors w-full md:w-auto">
+                <a
+                  href={appStoreUrl}
+                     target="_blank"
+                    rel="noreferrer"
+                className="flex items-center bg-blue-900 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors w-full md:w-auto">
                   <Apple className="mr-2" />
                   <div className="flex flex-col leading-tight">
                     <div className="text-[10px] uppercase">DOWNLOAD ON</div>
@@ -104,7 +119,7 @@ const Footer = () => {
                       App Store
                     </div>
                   </div>
-                </div>
+                </a>
               </div>
             </div>
 
@@ -191,6 +206,24 @@ const Footer = () => {
                   >
                     Contact us
                   </button>
+                  {/* <button
+                    onClick={() => navigate("/compare")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                 Compare
+                  </button> */}
+                  {/* <button
+                    onClick={() => navigate("/order-status-checker")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    Order Status
+                  </button> */}
+                  <button
+                    onClick={() => navigate("/recently-viewed")}
+                    className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors py-1"
+                  >
+                    Recently Viewed 
+                  </button>
                 </div>
               </div>
 
@@ -213,7 +246,7 @@ const Footer = () => {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <MapPin className="flex-shrink-0 h-5 w-5 text-blue-600 mt-0.5" />
+                    <MapPin className="flex-shrink-0 h-5 w-5 text-blue-900 mt-0.5" />
                     <span className="text-gray-600 text-sm">
                       {storeAddress}
                     </span>
@@ -224,7 +257,7 @@ const Footer = () => {
                     rel="noreferrer"
                     className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                   >
-                    <Phone className="flex-shrink-0 h-5 w-5 text-blue-600" />
+                    <Phone className="flex-shrink-0 h-5 w-5 text-blue-900" />
                     <span className="text-sm">{supportPhone}</span>
                   </a>
                   <a
@@ -233,7 +266,7 @@ const Footer = () => {
                     rel="noreferrer"
                     className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                   >
-                    <Mail className="flex-shrink-0 h-5 w-5 text-blue-600" />
+                    <Mail className="flex-shrink-0 h-5 w-5 text-blue-900" />
                     <span className="text-sm">{supportEmail}</span>
                   </a>
                   <div className="flex gap-3 pt-2">
@@ -241,10 +274,10 @@ const Footer = () => {
                       (Icon, index) => (
                         <a
                           key={index}
-                          href="#"
-                          target="_blank"
+                          // href="/"
+                          // target="_blank"
                           rel="noreferrer"
-                          className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-blue-600 hover:text-white transition-colors"
+                          className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-blue-900 hover:text-white transition-colors"
                         >
                           <Icon size={16} />
                         </a>
@@ -354,7 +387,7 @@ const Footer = () => {
                       Contact us
                     </button>
                   </li>
-                  <li>
+                  {/* <li>
                     <button
                       onClick={() => navigate("/compare")}
                   
@@ -362,8 +395,8 @@ const Footer = () => {
                     >
                      Compare
                     </button>
-                  </li>
-                  <li>
+                  </li> */}
+                  {/* <li>
                     <button
                       onClick={() => navigate("/order-status-checker")}
                   
@@ -371,7 +404,7 @@ const Footer = () => {
                     >
                      Order Status
                     </button>
-                  </li>
+                  </li> */}
                   <li>
                     <button
                       onClick={() => navigate("/recently-viewed")}
@@ -390,14 +423,14 @@ const Footer = () => {
                 <hr className="mb-4 text-gray-200" />
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
-                    <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <MapPin className="w-5 h-5 text-blue-900 mt-0.5 flex-shrink-0" />
                     <div className="text-gray-600 text-sm">
                       <div>{storeAddress}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <Phone className="w-5 h-5 text-blue-900 flex-shrink-0" />
                     <a
                       target="_blank"
                       rel="noreferrer"
@@ -409,7 +442,7 @@ const Footer = () => {
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <Mail className="w-5 h-5 text-blue-900 flex-shrink-0" />
                     <a
                       target="_blank"
                       rel="noreferrer"
@@ -422,32 +455,32 @@ const Footer = () => {
 
                   <div className="flex space-x-3 pt-2">
                     <a
-                      href="#"
-                      target="_blank"
+                      // href="#"
+                      // target="_blank"
                       rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Facebook size={16} />
                     </a>
                     <a
-                      href="#"
-                      target="_blank"
+                      // href="#"
+                      // target="_blank"
                       rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Twitter size={16} />
                     </a>
                     <a
-                      href="#"
-                      target="_blank"
+                      // href="#"
+                      // target="_blank"
                       rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
                       <Linkedin size={16} />
                     </a>
                     <a
-                      href="#"
-                      target="_blank"
+                      // href="#"
+                      // target="_blank"
                       rel="noreferrer"
                       className="w-8 h-8 bg-gray-600 text-white rounded flex items-center justify-center hover:bg-blue-600 transition-colors"
                     >
@@ -465,13 +498,13 @@ const Footer = () => {
       <div className=" bg-gray-100 border-t border-gray-200 pt-2 pb-2">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-gray-600 text-sm text-center ">
-            Copyright © <span className="text-blue-600">Lohiya's</span> all
+            Copyright © <span className="text-blue-900">{storeName}</span> all
             rights reserved. Powered by{" "}
             <a
               href="https://ag-solutions.in/"
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600"
+              className="text-blue-900"
             >
               Ag-Solutions
             </a>

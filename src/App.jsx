@@ -52,7 +52,7 @@ function App() {
             />
             <Route path="/recently-viewed" element={<RecentlyViewed />} />
           </Routes>
-          <Chatbot />
+          {/* <Chatbot /> */}
         </MainLayout>
       </QueryClientProvider>
     </Router>

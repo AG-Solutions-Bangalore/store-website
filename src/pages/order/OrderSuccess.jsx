@@ -6,6 +6,7 @@ const OrderSuccess = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const orderData = state?.orderData;
+
   const formatDate = (date) => {
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, '0');
@@ -107,7 +108,7 @@ const OrderSuccess = () => {
                     </div>
                     <div className="flex-1 flex items-end justify-between text-sm">
                       <p className="text-gray-500">Qty {item.product_qnty}</p>
-                      <p className="font-medium text-gray-900">₹{item.product_price}</p>
+                      <p className="font-medium text-gray-900">₹{item.product_qnty * item.product_price}</p>
                     </div>
                   </div>
                 </li>

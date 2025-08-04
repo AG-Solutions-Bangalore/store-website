@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Eye, CheckCircle, Scale } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Eye, Scale, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { addToCart } from '../../redux/slices/CartSlice';
+import { addToCart, removeFromProductCart } from '../../redux/slices/CartSlice';
 import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { encryptId } from '../../utils/Encyrption';
-import { addToCompare } from '../../redux/slices/compareSlice';
-
-
+import { addToCompare, removeFromCompare } from '../../redux/slices/compareSlice';
 
 const ProductCard = ({ 
   id, 
@@ -24,13 +22,25 @@ const ProductCard = ({
   onViewProduct
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-    const [isCompareChecked, setIsCompareChecked] = useState(false);
+  const [localQuantity, setLocalQuantity] = useState(1);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector(state => state.cart.items);
-    const compareItems = useSelector(state => state.compare.items);
-  const isInCart = cartItems.some(item => item.id === id);
+  const compareItems = useSelector(state => state.compare.items);
+  
+  const cartItem = cartItems.find(item => item.id === id && item.size === weight);
+  const isInCart = Boolean(cartItem);
+  const currentCartQuantity = cartItem ? cartItem.quantity : 0;
   const isInCompare = compareItems.some(item => item.id === id);
+
+  // Sync local quantity with cart
+  useEffect(() => {
+    if (isInCart) {
+      setLocalQuantity(currentCartQuantity);
+    } else {
+      setLocalQuantity(1);
+    }
+  }, [isInCart, currentCartQuantity]);
 
   const handleViewProduct = (e) => {
     e.stopPropagation();
@@ -40,39 +50,69 @@ const ProductCard = ({
     }
   };
 
+  const handleQuantityChange = (change) => {
+    const newQuantity = localQuantity + change;
+    
+    if (newQuantity < 1) {
+      // Remove from cart if quantity would go below 1
+      dispatch(removeFromProductCart({ id, size: weight }));
+      toast.info(`${title} removed from cart`);
+      return;
+    }
+    
+    const operation = change > 0 ? 'increment' : 'decrement';
+    
+    dispatch(addToCart({
+      id,
+      name: title,
+      price: originalPrice,
+      quantity: Math.abs(change),
+      image,
+      size: weight,
+      operation
+    }));
+
+    setLocalQuantity(newQuantity);
+
+    if (change > 0) {
+      toast.success(`Added ${change} more ${title} to cart`);
+    } else {
+      toast.info(`Removed ${Math.abs(change)} ${title} from cart`);
+    }
+  };
+
   const handleAddToCart = (e) => {
     e.stopPropagation(); 
     e.preventDefault();
 
-    if (isInCart) return;
-
-    const cartItem = {
+    dispatch(addToCart({
       id,
       name: title,
       price: originalPrice,
       quantity: 1,
       image,
       size: weight,
-    };
+      operation: 'increment',
+      mrp:price,
+    }));
 
-    dispatch(addToCart(cartItem));
     toast.success(`${title} added to cart`);
   };
-const handleCompareToggle = (e) => {
+
+  const handleCompareToggle = (e) => {
     e.stopPropagation();
     e.preventDefault();
     
     if (isInCompare) {
       dispatch(removeFromCompare(id));
       toast.info(`${title} removed from compare`);
-      setIsCompareChecked(false);
     } else {
       if (compareItems.length >= 3) {
         toast.warning('You can compare maximum 3 products');
         return;
       }
       
-      const compareItem = {
+      dispatch(addToCompare({
         id,
         name: title,
         image,
@@ -80,18 +120,16 @@ const handleCompareToggle = (e) => {
         category,
         weight,
         rating,
-        description: 'test', // Add description if available
-        brand: 'test', // Add brand if available
-        sku: '11', // Add SKU if available
-      };
+        description: 'test',
+        brand: 'test',
+        sku: '11',
+      }));
       
-      dispatch(addToCompare(compareItem));
       toast.success(`${title} added to compare`);
-      setIsCompareChecked(true);
     }
   };
+
   const handleCardClick = (e) => {
-   
     if (!e.target.closest('button')) {
       const encryptedId = encryptId(id);
       navigate(`/product-details/${encodeURIComponent(encryptedId)}`);
@@ -122,7 +160,7 @@ const handleCompareToggle = (e) => {
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
-        <div className="absolute top-2 right-2 z-10">
+        {/* <div className="absolute top-2 right-2 z-10">
           <button 
             onClick={handleCompareToggle}
             className={`p-1 cursor-pointer rounded-full ${isInCompare ? 'bg-blue-600 text-black' : 'bg-white text-red-500'} shadow-sm border border-gray-200 hover:bg-blue-50 transition-colors`}
@@ -130,7 +168,7 @@ const handleCompareToggle = (e) => {
           >
             <Scale size={16} />
           </button>
-        </div>
+        </div> */}
       </div>
     
       <div className="p-4 flex flex-col flex-grow border-t border-gray-200">
@@ -168,31 +206,52 @@ const handleCompareToggle = (e) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-3">
+        <div className="grid grid-cols-3 md:grid-cols-2 gap-2 border-t border-gray-200 pt-3">
           <button 
             onClick={handleViewProduct}
-        
             className="flex items-center justify-center gap-1 p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 transition-colors duration-200 w-full"
           >
-            <Eye className="w-4 h-4 min-w-[16px] text-gray-900" />
+            <Eye className="w-4 h-4 min-w-[16px]  text-gray-900" />
             <span className="hidden sm:block text-xs font-medium truncate">View</span>
           </button>
-          <button 
-            onClick={handleAddToCart}
-            disabled={isInCart}
-            className={`flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 transition-colors duration-200 w-full ${
-            isInCart 
-              ? 'bg-green-700 hover:bg-green-500 text-white cursor-not-allowed' 
-              : 'bg-blue-400 hover:bg-blue-600 hover:text-white cursor-pointer'
-          }`}
-          >
+          
           {isInCart ? (
-            <CheckCircle className="w-4 h-4 min-w-[16px]" />
+            <div className="flex items-center justify-between border border-gray-200 rounded-lg overflow-hidden  col-span-2 md:col-span-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuantityChange(-1);
+                }}
+                className="p-1 hover:bg-gray-100 transition-colors"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="w-3 h-3 mx-auto" />
+              </button>
+              <span className={`px-2 text-center min-w-[1.5rem] text-xs ${
+                isInCart ? 'bg-green-100 text-green-800 font-medium' : ''
+              }`}>
+                {localQuantity}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuantityChange(1);
+                }}
+                className="p-1 hover:bg-gray-100 transition-colors"
+                aria-label="Increase quantity"
+              >
+                <Plus className="w-3 h-3 mx-auto" />
+              </button>
+            </div>
           ) : (
-            <ShoppingCart className="w-4 h-4 min-w-[16px]" />
+            <button 
+              onClick={handleAddToCart}
+              className="flex items-center justify-center gap-1 p-2 col-span-2 md:col-span-1 rounded-lg border border-gray-200 bg-blue-900  text-white hover:bg-blue-600 hover:text-white transition-colors duration-200 w-full cursor-pointer"
+            >
+              <ShoppingCart className="w-4 h-4 min-w-[16px]" />
+              <span className="text-xs hidden sm:block font-medium truncate">Cart</span>
+            </button>
           )}
-            <span className="text-xs hidden sm:block font-medium truncate">Cart</span>
-          </button>
         </div>
       </div>
     </div>

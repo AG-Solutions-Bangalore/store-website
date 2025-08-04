@@ -22,9 +22,14 @@ const Cart = () => {
     dispatch(removeFromCart(id));
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subTotalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotalMrp = cartItems.reduce((sum, item) => sum + (item.mrp * item.quantity), 0);
   const deliveryCharges = 0.00;
-  const total = subtotal + deliveryCharges;
+  const discount =subtotalMrp - subTotalPrice
+  const total = (subtotalMrp + deliveryCharges) - discount ;
+
+  const discountPercentage =((discount / subtotalMrp) * 100).toFixed(2)
+ 
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
@@ -72,9 +77,11 @@ const Cart = () => {
                       <thead className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
                         <tr className="text-sm text-gray-600">
                           <th className="py-3 px-4 text-left font-medium">Product</th>
+                          {/* <th className="py-3 px-4 text-center font-medium">Mrp</th> */}
                           <th className="py-3 px-4 text-center font-medium">Price</th>
                           <th className="py-3 px-4 text-center font-medium">Quantity</th>
                           <th className="py-3 px-4 text-center font-medium">Total</th>
+                          {/* <th className="py-3 px-4 text-center font-medium">Total MRp</th> */}
                           <th className="py-3 px-4 text-right font-medium">Action</th>
                         </tr>
                       </thead>
@@ -92,9 +99,22 @@ const Cart = () => {
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4 px-4 text-center text-blue-700 font-medium">
+                            {/* <td className="py-4 px-4 text-center font-normal">
+                              ₹{item.mrp}
+                            </td> */}
+                            {/* <td className="py-4 px-4 text-center text-blue-700 font-medium">
                               ₹{item.price}
-                            </td>
+                            </td> */}
+                   <td className="py-4 px-4 text-center align-middle">
+  <div className="flex items-center justify-center gap-2">
+  <span className="text-blue-700 font-semibold text-base">₹{item.price}</span>
+    <span className="text-gray-600 text-xs line-through">₹{item.mrp}</span>
+  
+  </div>
+</td>
+
+
+
                             <td className="py-4 px-4">
                               <div className="flex items-center justify-center gap-1">
                                 <button
@@ -117,6 +137,9 @@ const Cart = () => {
                             <td className="py-4 px-4 text-center font-medium text-blue-700">
                               ₹{(item.price * item.quantity).toFixed(2)}
                             </td>
+                            {/* <td className="py-4 px-4 text-center font-medium text-blue-700">
+                              ₹{(item.mrp * item.quantity).toFixed(2)}
+                            </td> */}
                             <td className="py-4 px-4 text-right">
                               <button
                                 onClick={() => removeItem(item.id)}
@@ -154,10 +177,15 @@ const Cart = () => {
                         </div>
 
                         <div className="mt-3 grid grid-cols-3 gap-2">
-                          <div className="bg-gray-50 p-2 rounded-md">
-                            <p className="text-xs text-gray-500">Price</p>
-                            <p className="text-sm font-medium text-blue-700">₹{item.price}</p>
-                          </div>
+                        <div className="bg-gray-50 p-2 rounded-md">
+  <p className="text-xs text-gray-500">Price</p>
+  <div className="flex items-center gap-2 mt-1">
+  <span className="text-blue-700 text-sm font-semibold">₹{item.price}</span>
+    <span className="text-gray-400 text-xs line-through">₹{item.mrp}</span>
+   
+  </div>
+</div>
+
                           <div className="bg-gray-50 p-2 rounded-md">
                             <p className="text-xs text-gray-500">Qty</p>
                             <div className="flex items-center justify-center gap-1 mt-1">
@@ -178,7 +206,9 @@ const Cart = () => {
                               </button>
                             </div>
                           </div>
+                        
                           <div className="bg-gray-50 p-2 rounded-md">
+                            
                             <p className="text-xs text-gray-500">Total</p>
                             <p className="text-sm font-medium text-blue-700">₹{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
@@ -207,7 +237,7 @@ const Cart = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Sub-Total</span>
                     <span className="text-gray-900 font-medium">
-                      ₹{subtotal.toFixed(2)}
+                      ₹{subtotalMrp.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -216,6 +246,30 @@ const Cart = () => {
                       ₹{deliveryCharges.toFixed(2)}
                     </span>
                   </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Discount Amount</span>
+                    <span className="text-gray-900 font-medium">
+                     - ₹{discount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-center">
+                                    <div className="inline-flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg text-xs">
+                                      <span className="bg-green-600 text-white px-2 py-0.5 rounded font-semibold">
+                                      {
+                                     discountPercentage
+
+                                      }
+                                   
+                                        % OFF
+                                      </span>
+                                      <span className="text-green-600 font-medium">
+                                        Congrats! 🎉 You Saved ₹
+                                        {(
+                                          discount
+                                        ).toFixed(2)} 
+                                      </span>
+                                    </div>
+                                  </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between items-center text-lg font-medium">
                       <span className="text-gray-900">Total Amount</span>
