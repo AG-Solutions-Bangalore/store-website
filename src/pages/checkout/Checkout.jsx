@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -15,6 +15,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
   const keyDown = useNumericInput();
+  const nameInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     firm_name: "",
     gstin: "",
@@ -97,7 +99,12 @@ const Checkout = () => {
 
     return error;
   };
-
+  useEffect(() => {
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, []);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -389,6 +396,7 @@ const Checkout = () => {
                         Full Name*
                       </label>
                       <input
+                        ref={nameInputRef}
                         type="text"
                         name="name"
                         maxLength={80}
