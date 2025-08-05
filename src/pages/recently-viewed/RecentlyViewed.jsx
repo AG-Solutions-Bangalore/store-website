@@ -244,7 +244,7 @@ const RecentlyViewed = () => {
                       ) : (
                         <button 
                           onClick={(e) => handleAddToCart(product, e)}
-                          className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 bg-blue-400 hover:bg-blue-600 hover:text-white transition-colors duration-200 cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-gray-200 bg-blue-900 hover:bg-blue-600 text-white transition-colors duration-200 cursor-pointer"
                         >
                           <ShoppingCart className="w-4 h-4 min-w-[16px]" />
                           <span className="text-xs font-medium truncate">Cart</span>
